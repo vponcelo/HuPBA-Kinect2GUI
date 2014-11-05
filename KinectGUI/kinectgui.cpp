@@ -49,7 +49,7 @@ void KinectGUI::setupInterfaceBehavior()
 	_mapper->setMapping(ui.maskRecordCheck, 5);
 	_mapper->setMapping(ui.skeletonShowCheck, 6);
 	_mapper->setMapping(ui.skeletonRecordCheck, 7);
-	_mapper->setMapping(ui.audioShowCheck, 8);
+	//_mapper->setMapping(ui.audioShowCheck, 8);
 	_mapper->setMapping(ui.audioRecordCheck, 9);
 
 	connect(ui.colorShowCheck, SIGNAL(stateChanged(int)), _mapper, SLOT(map()));
@@ -60,7 +60,7 @@ void KinectGUI::setupInterfaceBehavior()
 	connect(ui.maskRecordCheck, SIGNAL(stateChanged(int)), _mapper, SLOT(map()));
 	connect(ui.skeletonShowCheck, SIGNAL(stateChanged(int)), _mapper, SLOT(map()));
 	connect(ui.skeletonRecordCheck, SIGNAL(stateChanged(int)), _mapper, SLOT(map()));
-	connect(ui.audioShowCheck, SIGNAL(stateChanged(int)), _mapper, SLOT(map()));
+	//connect(ui.audioShowCheck, SIGNAL(stateChanged(int)), _mapper, SLOT(map()));
 	connect(ui.audioRecordCheck, SIGNAL(stateChanged(int)), _mapper, SLOT(map()));
 
 	connect(_mapper, SIGNAL(mapped(int)), this, SLOT(checkboxChanged(int)));
@@ -129,18 +129,19 @@ void KinectGUI::checkboxChanged(int cb)
 	case 7:
 		ui.skeletonRecordCheck->isChecked() ? _recordSkeleton = true : _recordSkeleton = false;
 		break;
-	case 8:
+	/*case 8:
 		if (ui.audioShowCheck->isChecked())
 		{
 			_showAudio = true;
-			uiAux.audioImage->show();
+			//uiAux.audioImage->show();
 		}
 		else
 		{
 			_showAudio = false;
-			uiAux.audioImage->close();
+			//uiAux.audioImage->close();
 		}
 		break;
+		*/
 	case 9:
 		ui.audioRecordCheck->isChecked() ? _recordAudio = true : _recordAudio = false;
 		break;
@@ -196,7 +197,7 @@ void KinectGUI::showImages(bool show)
 		uiAux.skeletonImage->close();
 		uiAux.depthDataImage->close();
 		uiAux.rgbDataImage->close();
-		uiAux.audioImage->close();
+		//uiAux.audioImage->close();
 	}
 }
 
@@ -206,7 +207,7 @@ void KinectGUI::updateFPS()
 	ui.depthFps->setText(QString::number(_kinect2Interface->getDepthFps(), 'f', 2));
 	ui.maskFps->setText(QString::number(_kinect2Interface->getBodyMaskFps(), 'f', 2));
 	ui.skeletonFps->setText(QString::number(_kinect2Interface->getSkeletonFps(), 'f', 2));
-	ui.audioFps->setText("fps");
+	ui.audioBeam->setText(QString::number(_kinect2Interface->getAudioBeam(), 'f', 2));
 
 	qDebug() << _kinect2Interface->getSkeletonFps();
 }

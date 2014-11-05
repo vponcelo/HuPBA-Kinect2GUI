@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'kinectgui.ui'
 **
-** Created by: Qt User Interface Compiler version 5.3.1
+** Created by: Qt User Interface Compiler version 5.3.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -74,14 +74,14 @@ public:
     QCheckBox *maskShowCheck;
     QLabel *fpsLabel;
     QLabel *showLabel;
-    QCheckBox *audioShowCheck;
+    //QCheckBox *audioShowCheck;
     QCheckBox *audioRecordCheck;
     QCheckBox *skeletonRecordCheck;
     QCheckBox *maskRecordCheck;
     QLabel *skeletonLabel;
     QLabel *skeletonFps;
     QLabel *audioLabel;
-    QLabel *audioFps;
+    QLabel *audioBeam;
     QCheckBox *skeletonShowCheck;
     QCheckBox *colorRecordCheck;
     QFrame *audioFrame;
@@ -325,10 +325,10 @@ public:
 
         gridLayout_2->addWidget(showLabel, 0, 2, 1, 1);
 
-        audioShowCheck = new QCheckBox(layoutWidget3);
-        audioShowCheck->setObjectName(QStringLiteral("audioShowCheck"));
+        //audioShowCheck = new QCheckBox(layoutWidget3);
+        //audioShowCheck->setObjectName(QStringLiteral("audioShowCheck"));
 
-        gridLayout_2->addWidget(audioShowCheck, 5, 2, 1, 1, Qt::AlignHCenter|Qt::AlignVCenter);
+        //gridLayout_2->addWidget(audioShowCheck, 5, 2, 1, 1, Qt::AlignHCenter|Qt::AlignVCenter);
 
         audioRecordCheck = new QCheckBox(layoutWidget3);
         audioRecordCheck->setObjectName(QStringLiteral("audioRecordCheck"));
@@ -361,11 +361,11 @@ public:
 
         gridLayout_2->addWidget(audioLabel, 5, 0, 1, 1);
 
-        audioFps = new QLabel(layoutWidget3);
-        audioFps->setObjectName(QStringLiteral("audioFps"));
-        audioFps->setAlignment(Qt::AlignCenter);
+        audioBeam = new QLabel(layoutWidget3);
+        audioBeam->setObjectName(QStringLiteral("audioBeam"));
+        audioBeam->setAlignment(Qt::AlignCenter);
 
-        gridLayout_2->addWidget(audioFps, 5, 1, 1, 1);
+        gridLayout_2->addWidget(audioBeam, 5, 1, 1, 1);
 
         skeletonShowCheck = new QCheckBox(layoutWidget3);
         skeletonShowCheck->setObjectName(QStringLiteral("skeletonShowCheck"));
@@ -425,16 +425,16 @@ public:
         colorFps->setText(QApplication::translate("KinectGUIClass", "--", 0));
         colorShowCheck->setText(QString());
         maskShowCheck->setText(QString());
-        fpsLabel->setText(QApplication::translate("KinectGUIClass", "FPS", 0));
+        fpsLabel->setText(QApplication::translate("KinectGUIClass", "FPS/BA", 0));
         showLabel->setText(QApplication::translate("KinectGUIClass", "Show", 0));
-        audioShowCheck->setText(QString());
+        //audioShowCheck->setText(QString());
         audioRecordCheck->setText(QString());
         skeletonRecordCheck->setText(QString());
         maskRecordCheck->setText(QString());
         skeletonLabel->setText(QApplication::translate("KinectGUIClass", "Skeleton: ", 0));
         skeletonFps->setText(QApplication::translate("KinectGUIClass", "--", 0));
         audioLabel->setText(QApplication::translate("KinectGUIClass", "Audio: ", 0));
-        audioFps->setText(QApplication::translate("KinectGUIClass", "--", 0));
+        audioBeam->setText(QApplication::translate("KinectGUIClass", "--", 0));
         skeletonShowCheck->setText(QString());
         colorRecordCheck->setText(QString());
         audioLabel_2->setText(QApplication::translate("KinectGUIClass", "Audio", 0));

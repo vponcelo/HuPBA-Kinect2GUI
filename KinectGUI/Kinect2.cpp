@@ -1,8 +1,11 @@
 #include "Kinect2.h"
 
-#include <qdebug.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 
 Kinect2::Kinect2() :
+
 _fFreq(0),
 _nLastCounter(0),
 _nLastCounterBody (0),
@@ -13,7 +16,7 @@ _fBodyFreq(0),
 _fDepthFreq(0),
 _fRGBFreq(0),
 _fBodyIndexFreq(0),
-_fAudioFreq(0),
+_fAudioBeam(0),
 _nHeight(0),
 _nWidth(0),
 _pKinectSensor(NULL),
@@ -25,7 +28,20 @@ _pOutputRGBX(NULL),
 _pColorRGBX(NULL),
 _pColorCoordinates(NULL),
 _pCameraCoordinates(NULL),
-_pBodyMask(NULL)
+_pBodyMask(NULL),
+_pAudioBeamFrameReader(NULL),
+_hFrameArrivedEvent(NULL),
+_hTerminateWorkerThread(NULL),
+_hWorkerThread(NULL),
+_fBeamAngle(0.0f),
+_fBeamAngleConfidence(0.0f),
+_fAccumulatedSquareSum(0.0f),
+_fEnergyError(0.0f),
+_nAccumulatedSampleCount(0),
+_nEnergyIndex(0),
+_nEnergyRefreshIndex(0),
+_nNewEnergyAvailable(0),
+_nLastEnergyRefreshTime(NULL)
 
 {
 	LARGE_INTEGER qpf = { 0 };
@@ -58,11 +74,50 @@ _pBodyMask(NULL)
 	_pDepth = new USHORT[cDepthWidth * cDepthHeight];
 
 	_joints = new Joint[JointType_Count];
+
+	// Audio
+	InitializeCriticalSection(&_csLock);
+
+	ZeroMemory(_fEnergyBuffer, sizeof(_fEnergyBuffer));	
 }
 
 
 Kinect2::~Kinect2()
 {
+	// Audio
+	// Signal the worker thread to terminate
+	if (NULL != _hTerminateWorkerThread)
+	{
+		SetEvent(_hTerminateWorkerThread);
+	}
+
+	// Wait for the worker thread to terminate
+	if (NULL != _hWorkerThread)
+	{
+		WaitForSingleObject(_hWorkerThread, INFINITE);
+		CloseHandle(_hWorkerThread);
+	}
+
+	if (NULL != _hTerminateWorkerThread)
+	{
+		CloseHandle(_hTerminateWorkerThread);
+	}
+
+	// Clean up Direct2D renderer
+	
+	if (NULL != _pAudioBeamFrameReader)
+	{
+		if (NULL != _hFrameArrivedEvent)
+		{
+			_pAudioBeamFrameReader->UnsubscribeFrameArrived(_hFrameArrivedEvent);
+		}
+
+		safeRelease(_pAudioBeamFrameReader);
+	}
+
+	DeleteCriticalSection(&_csLock);
+	
+	// Destruct the remainder of modalities
 	if (_pDepth)
 	{
 		delete[] _pDepth;
@@ -117,7 +172,108 @@ Kinect2::~Kinect2()
 	}
 
 	safeRelease(_pKinectSensor);
+}
 
+template<class Interface> void Kinect2::safeRelease(Interface *& ppT)
+{
+	if (ppT)
+	{
+		ppT->Release();
+		ppT = NULL;
+	}
+}
+
+USHORT* Kinect2::getDepth()
+{
+	return reinterpret_cast<USHORT*>(_pDepth);
+}
+
+BYTE* Kinect2::getDepthRGB()
+{
+	return reinterpret_cast<BYTE*>(_pDepthRGBX);
+}
+
+BYTE* Kinect2::getInputRGB()
+{
+	return reinterpret_cast<BYTE*>(_pColorRGBX);
+}
+
+BYTE* Kinect2::getOutputRGB()
+{
+	return reinterpret_cast<BYTE*>(_pOutputRGBX);
+}
+
+CameraSpacePoint* Kinect2::getCameraCoordinates()
+{
+	return _pCameraCoordinates;
+}
+
+BYTE* Kinect2::getBodyMask()
+{
+	return _pBodyMask;
+}
+
+Joint* Kinect2::getSkeletonJoints()
+{
+	return _joints;
+}
+
+std::vector<std::vector<int> > Kinect2::getSkeletonJointPoints()
+{
+	return _jointPoints;
+}
+int Kinect2::getColorWidth()
+{
+	return cColorWidth;
+}
+
+int Kinect2::getColorHeight()
+{
+	return cColorHeight;
+}
+
+int Kinect2::getDepthWidth()
+{
+	return cDepthWidth;
+}
+int Kinect2::getDepthHeight()
+{
+	return cDepthHeight;
+}
+
+float Kinect2::getMean()
+{
+	return _mean;
+}
+
+float Kinect2::getStd()
+{
+	return _std;
+}
+
+double Kinect2::getBodyFreq()
+{
+	return _fBodyFreq;
+}
+
+double Kinect2::getBodyIndexFreq()
+{
+	return _fBodyIndexFreq;
+}
+
+double Kinect2::getDepthFreq()
+{
+	return _fDepthFreq;
+}
+
+double Kinect2::getRGBFreq()
+{
+	return _fRGBFreq;
+}
+
+double Kinect2::getAudioBeam()
+{
+	return _fAudioBeam;
 }
 
 HRESULT Kinect2::initializeDefaultSensor()
@@ -178,9 +334,33 @@ HRESULT Kinect2::initializeDefaultSensor()
 		{
 			hr = pAudioSource->OpenReader(&_pAudioBeamFrameReader);
 		}
-		safeRelease(pAudioSource);
+		
+		if (SUCCEEDED(hr))
+		{
+			hr = _pAudioBeamFrameReader->SubscribeFrameArrived(&_hFrameArrivedEvent);
+		}
 
+		if (SUCCEEDED(hr))
+		{
+			_hTerminateWorkerThread = CreateEvent(NULL, FALSE, FALSE, NULL);
+			if (NULL == _hTerminateWorkerThread)
+			{
+				hr = HRESULT_FROM_WIN32(GetLastError());
+			}
+		}
 
+		if (SUCCEEDED(hr))
+		{
+			_hWorkerThread = CreateThread(NULL, 0, &Kinect2::WorkerThread, this, 0, NULL);
+			if (NULL == _hWorkerThread)
+			{
+				hr = HRESULT_FROM_WIN32(GetLastError());
+			}
+		}
+
+		safeRelease(pAudioSource);		
+		
+		return hr;		
 	}
 
 	if (!_pKinectSensor || FAILED(hr))
@@ -191,44 +371,125 @@ HRESULT Kinect2::initializeDefaultSensor()
 	return hr;
 }
 
-USHORT* Kinect2::getDepth()
+DWORD WINAPI Kinect2::WorkerThread(_In_ LPVOID lpParameter)
 {
-	return reinterpret_cast<USHORT*>(_pDepth);
+	HRESULT hr = S_OK;
+	Kinect2* pThis = static_cast<Kinect2 *>(lpParameter);
+
+	hr = pThis->WorkerThread();
+
+	return SUCCEEDED(hr) ? 0 : 1;
 }
 
-BYTE* Kinect2::getDepthRGB()
+/// <summary>
+/// Handles frame arrived events
+/// </summary>
+HRESULT Kinect2::WorkerThread()
 {
-	return reinterpret_cast<BYTE*>(_pDepthRGBX);
-}
+	HRESULT hr = S_OK;
+	BOOL workerThreadRunning = TRUE;
+	BOOL clearStatusMessage = FALSE;
+	UINT statusMessageFramesToPersistRemaining = 0;
+	DWORD timeout = 2000; // In msec. If we don't get a new frame event by this time, display an error message. Any number of seconds will do here.
+	UINT32 subFrameCount = 0;
+	IAudioBeamFrameArrivedEventArgs* pAudioBeamFrameArrivedEventArgs = NULL;
+	IAudioBeamFrameReference* pAudioBeamFrameReference = NULL;
+	IAudioBeamFrameList* pAudioBeamFrameList = NULL;
+	IAudioBeamFrame* pAudioBeamFrame = NULL;
+	HANDLE handles[] = { (HANDLE)_hFrameArrivedEvent, _hTerminateWorkerThread };
 
-BYTE* Kinect2::getInputRGB()
-{
-	return reinterpret_cast<BYTE*>(_pColorRGBX);
-}
+	while (workerThreadRunning)
+	{
+		// Wait for a new audio frame
+		DWORD result = WaitForMultipleObjects(_countof(handles), handles, FALSE, timeout);
 
-BYTE* Kinect2::getOutputRGB()
-{
-	return reinterpret_cast<BYTE*>(_pOutputRGBX);
-}
+		if (WAIT_OBJECT_0 == result)
+		{
+			// Process new audio frame
+			hr = _pAudioBeamFrameReader->GetFrameArrivedEventData(_hFrameArrivedEvent, &pAudioBeamFrameArrivedEventArgs);
 
-CameraSpacePoint* Kinect2::getCameraCoordinates()
-{
-	return _pCameraCoordinates;
-}
+			if (SUCCEEDED(hr))
+			{
+				hr = pAudioBeamFrameArrivedEventArgs->get_FrameReference(&pAudioBeamFrameReference);
+			}
 
-BYTE* Kinect2::getBodyMask()
-{
-	return _pBodyMask;
-}
+			if (SUCCEEDED(hr))
+			{
+				hr = pAudioBeamFrameReference->AcquireBeamFrames(&pAudioBeamFrameList);
+			}
 
-Joint* Kinect2::getSkeletonJoints()
-{
-	return _joints;
-}
+			if (SUCCEEDED(hr))
+			{
+				// Only one audio beam is currently supported
+				hr = pAudioBeamFrameList->OpenAudioBeamFrame(0, &pAudioBeamFrame);
+			}
 
-std::vector<std::vector<int> > Kinect2::getSkeletonJointPoints()
-{
-	return _jointPoints;
+			if (SUCCEEDED(hr))
+			{
+				hr = pAudioBeamFrame->get_SubFrameCount(&subFrameCount);
+			}
+
+			if (SUCCEEDED(hr) && subFrameCount > 0)
+			{
+				for (UINT32 i = 0; i < subFrameCount; i++)
+				{
+					// Process all subframes
+					IAudioBeamSubFrame* pAudioBeamSubFrame = NULL;
+
+					hr = pAudioBeamFrame->GetSubFrame(i, &pAudioBeamSubFrame);
+
+					if (SUCCEEDED(hr))
+					{
+						ProcessAudio(pAudioBeamSubFrame);
+					}
+
+					safeRelease(pAudioBeamSubFrame);
+				}
+			}
+
+			safeRelease(pAudioBeamFrame);
+			safeRelease(pAudioBeamFrameList);
+			safeRelease(pAudioBeamFrameReference);
+			safeRelease(pAudioBeamFrameArrivedEventArgs);
+
+			if (FAILED(hr))
+			{
+				
+				// Persist the status message for some arbitrary amount of time, for example 30 successfully acquired audio frames
+				statusMessageFramesToPersistRemaining = 30;
+			}
+			else if (clearStatusMessage)
+			{
+				// Clear any previous status messages if needed
+				clearStatusMessage = FALSE;
+			}
+			else if (statusMessageFramesToPersistRemaining > 0)
+			{
+				// Update frame counter and signal a reset of status message when the counter hits zero
+				if (--statusMessageFramesToPersistRemaining == 0)
+				{
+					clearStatusMessage = TRUE;
+				}
+			}
+		}
+		else if (WAIT_OBJECT_0 + 1 == result)
+		{
+			// Terminate worker thread
+			break;
+		}
+		else if (WAIT_TIMEOUT == result)
+		{
+			// This will clear the error message once a new frame is arrived
+			clearStatusMessage = TRUE;
+		}
+		else
+		{
+			hr = E_FAIL;
+			break;
+		}
+	}
+
+	return hr;
 }
 
 void Kinect2::update()
@@ -242,52 +503,46 @@ void Kinect2::update()
 	IDepthFrame* pDepthFrame = NULL;
 	IColorFrame* pColorFrame = NULL;
 	IBodyIndexFrame* pBodyIndexFrame = NULL;
-	IBodyFrame* pBodyFrame = NULL;
-	
+	IBodyFrame* pBodyFrame = NULL;	
 	IAudioBeamFrameList* pAudioBeamFrameList = NULL;
 	IAudioBeamFrame* pAudioBeamFrame = NULL;
 
 	//Audio
-	HRESULT hr = _pAudioBeamFrameReader->AcquireLatestBeamFrames(&pAudioBeamFrameList);
+	ULONGLONG previousRefreshTime = _nLastEnergyRefreshTime;
+	ULONGLONG now = GetTickCount64();
 
-	if (SUCCEEDED(hr))
+	//_nLastEnergyRefreshTime = now;
+
+	// No need to refresh if there is no new energy available to render
+	if (_nNewEnergyAvailable <= 0)
 	{
-		hr = pAudioBeamFrameList->OpenAudioBeamFrame(0, &pAudioBeamFrame);
+		return;
 	}
 
-	if (SUCCEEDED(hr))
 	{
-		UINT32 subFrameCount = 0;
+		EnterCriticalSection(&_csLock);
 
-		if (SUCCEEDED(hr))
+		if (previousRefreshTime != NULL)
 		{
-			hr = pAudioBeamFrame->get_SubFrameCount(&subFrameCount);
+			// Calculate how many energy samples we need to advance since the last Update() call in order to
+			// have a smooth animation effect.
+			float energyToAdvance = _fEnergyError + (((now - previousRefreshTime) * cAudioSamplesPerSecond / (float)1000.0) / cAudioSamplesPerEnergySample);
+			int energySamplesToAdvance = std::min((int)_nNewEnergyAvailable, (int)(energyToAdvance));
+			_fEnergyError = energyToAdvance - energySamplesToAdvance;
+			_nEnergyRefreshIndex = (_nEnergyRefreshIndex + energySamplesToAdvance) % cEnergyBufferLength;
+			_nNewEnergyAvailable -= energySamplesToAdvance;
 		}
 
-		if (SUCCEEDED(hr) && subFrameCount > 0)
-		{
-			for (UINT32 i = 0; i < subFrameCount; i++)
-			{
-				// Process all subframes
-				IAudioBeamSubFrame* pAudioBeamSubFrame = NULL;
+		// Apply latest beam angle and confidence. 
+		// SetBeam() expects the angle in degrees, whereas Kinect gives it in radians. Convert from radians to degrees.
+		_fAudioBeam = 180.0f * _fBeamAngle / static_cast<float>(M_PI);	
 
-				hr = pAudioBeamFrame->GetSubFrame(i, &pAudioBeamSubFrame);
-
-				if (SUCCEEDED(hr))
-				{
-					ProcessAudio(pAudioBeamSubFrame);
-				}
-
-				safeRelease(pAudioBeamSubFrame);
-			}
-		}
-
-		safeRelease(pAudioBeamFrame);
-		safeRelease(pAudioBeamFrameList);
+		LeaveCriticalSection(&_csLock);
 	}
 
 	//Multisource frame reader
-	hr = _pMultiSourceFrameReader->AcquireLatestFrame(&pMultiSourceFrame);
+	//HRESULT hr = _pAudioBeamFrameReader->AcquireLatestBeamFrames(&pAudioBeamFrameList);
+	HRESULT hr = _pMultiSourceFrameReader->AcquireLatestFrame(&pMultiSourceFrame);
 
 	if (SUCCEEDED(hr))
 	{
@@ -475,8 +730,7 @@ void Kinect2::update()
 		{
 
 			ProcessFrame(nDepthTime, pDepthBuffer, nDepthWidth, nDepthHeight, nDepthMinReliableDistance, nDepthMaxReliableDistance,
-				pColorBuffer, nColorWidth, nColorHeight,
-				pBodyIndexBuffer, nBodyIndexWidth, nBodyIndexHeight);
+				pColorBuffer, nColorWidth, nColorHeight, pBodyIndexBuffer, nBodyIndexWidth, nBodyIndexHeight);
 		}
 
 		//get body frame data
@@ -689,7 +943,66 @@ void Kinect2::ProcessAudio(IAudioBeamSubFrame* pAudioBeamSubFrame)
 
 	if (cbRead > 0)
 	{
-		// continue
+		DWORD nSampleCount = cbRead / sizeof(float);
+		float fBeamAngle = 0.f;
+		float fBeamAngleConfidence = 0.0f;
+
+		// Get audio beam angle and confidence
+		pAudioBeamSubFrame->get_BeamAngle(&fBeamAngle);
+		pAudioBeamSubFrame->get_BeamAngleConfidence(&fBeamAngleConfidence);
+
+		// Calculate energy from audio
+		for (UINT i = 0; i < nSampleCount; i++)
+		{
+			// Compute the sum of squares of audio samples that will get accumulated
+			// into a single energy value.
+			__pragma(warning(push))
+				__pragma(warning(disable:6385)) // Suppress warning about the range of i. The range is correct.
+				_fAccumulatedSquareSum += pAudioBuffer[i] * pAudioBuffer[i];
+			__pragma(warning(pop))
+				++_nAccumulatedSampleCount;
+
+			if (_nAccumulatedSampleCount < cAudioSamplesPerEnergySample)
+			{
+				continue;
+			}
+
+			// Each energy value will represent the logarithm of the mean of the
+			// sum of squares of a group of audio samples.
+			float fMeanSquare = _fAccumulatedSquareSum / cAudioSamplesPerEnergySample;
+
+			if (fMeanSquare > 1.0f)
+			{
+				// A loud audio source right next to the sensor may result in mean square values
+				// greater than 1.0. Cap it at 1.0f for display purposes.
+				fMeanSquare = 1.0f;
+			}
+
+			float fEnergy = cMinEnergy;
+			if (fMeanSquare > 0.f)
+			{
+				// Convert to dB
+				fEnergy = 10.0f*log10(fMeanSquare);
+			}
+
+			{
+				// Protect shared resources with Update() method on another thread
+				EnterCriticalSection(&_csLock);
+
+				_fBeamAngle = fBeamAngle;
+				_fBeamAngleConfidence = fBeamAngleConfidence;
+
+				// Renormalize signal above noise floor to [0,1] range for visualization.
+				_fEnergyBuffer[_nEnergyIndex] = (cMinEnergy - fEnergy) / cMinEnergy;
+				_nNewEnergyAvailable++;
+				_nEnergyIndex = (_nEnergyIndex + 1) % cEnergyBufferLength;
+
+				LeaveCriticalSection(&_csLock);
+			}
+
+			_fAccumulatedSquareSum = 0.f;
+			_nAccumulatedSampleCount = 0;
+		}
 	}
 }
 
@@ -704,67 +1017,4 @@ void Kinect2::BodyToScreen(const CameraSpacePoint& bodyPoint, std::vector<int> &
 
 	points[0] = screenPointX;
 	points[1] = screenPointY;
-}
-
-template<class Interface> void Kinect2::safeRelease(Interface *& ppT)
-{
-	if (ppT)
-	{
-		ppT->Release();
-		ppT = NULL;
-	}
-}
-
-int Kinect2::getColorWidth()
-{
-	return cColorWidth;
-}
-
-int Kinect2::getColorHeight()
-{
-	return cColorHeight;
-}
-
-int Kinect2::getDepthWidth()
-{
-	return cDepthWidth;
-}
-int Kinect2::getDepthHeight()
-{
-	return cDepthHeight;
-}
-
-float Kinect2::getMean()
-{
-	return _mean;
-}
-
-float Kinect2::getStd()
-{
-	return _std;
-}
-
-double Kinect2::getBodyFreq()
-{
-	return _fBodyFreq;
-}
-
-double Kinect2::getBodyIndexFreq()
-{
-	return _fBodyIndexFreq;
-}
-
-double Kinect2::getDepthFreq()
-{
-	return _fDepthFreq;
-}
-
-double Kinect2::getRGBFreq()
-{
-	return _fRGBFreq;
-}
-
-double Kinect2::getAudioFreq()
-{
-	return _fAudioFreq;
 }

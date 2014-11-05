@@ -1,536 +1,536 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>KinectGUIClass</class>
- <widget class="QMainWindow" name="KinectGUIClass">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>1403</width>
-    <height>989</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>KinectGUI</string>
-  </property>
-  <widget class="QWidget" name="centralWidget">
-   <widget class="QWidget" name="layoutWidget">
+  <class>KinectGUIClass</class>
+  <widget class="QMainWindow" name="KinectGUIClass">
     <property name="geometry">
-     <rect>
-      <x>1070</x>
-      <y>90</y>
-      <width>281</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QPushButton" name="startRecordButton">
-       <property name="text">
-        <string>Start recording</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="stopRecordButton">
-       <property name="text">
-        <string>Stop recording</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="layoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>1041</width>
-      <height>911</height>
-     </rect>
-    </property>
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>RGB data</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QFrame" name="RGBframe">
-         <property name="minimumSize">
-          <size>
-           <width>514</width>
-           <height>426</height>
-          </size>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::Box</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="0" column="1">
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Depth data</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QFrame" name="depthFrame">
-         <property name="minimumSize">
-          <size>
-           <width>514</width>
-           <height>426</height>
-          </size>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::Box</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="1" column="0">
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Person mask</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QFrame" name="maskFrame">
-         <property name="minimumSize">
-          <size>
-           <width>514</width>
-           <height>426</height>
-          </size>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::Box</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="1" column="1">
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Skeleton</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QFrame" name="skeletonFrame">
-         <property name="minimumSize">
-          <size>
-           <width>514</width>
-           <height>426</height>
-          </size>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::Box</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="layoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>1070</x>
-      <y>40</y>
-      <width>281</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="startCaptureButton">
-       <property name="text">
-        <string>Start capturing</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="stopCaptureButton">
-       <property name="text">
-        <string>Stop capturing</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QGroupBox" name="groupBox">
-    <property name="geometry">
-     <rect>
-      <x>1070</x>
-      <y>150</y>
-      <width>281</width>
-      <height>211</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>General Information</string>
-    </property>
-    <widget class="QWidget" name="layoutWidget">
-     <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>263</width>
-       <height>137</height>
+        <x>0</x>
+        <y>0</y>
+        <width>1403</width>
+        <height>989</height>
       </rect>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+    </property>
+    <property name="windowTitle">
+      <string>KinectGUI</string>
+    </property>
+    <widget class="QWidget" name="centralWidget">
+      <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+          <rect>
+            <x>1070</x>
+            <y>90</y>
+            <width>281</width>
+            <height>41</height>
+          </rect>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>60</width>
-          <height>20</height>
-         </size>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+            <widget class="QPushButton" name="startRecordButton">
+              <property name="text">
+                <string>Start recording</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="stopRecordButton">
+              <property name="text">
+                <string>Stop recording</string>
+              </property>
+            </widget>
+          </item>
+        </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+          <rect>
+            <x>10</x>
+            <y>10</y>
+            <width>1041</width>
+            <height>911</height>
+          </rect>
         </property>
-       </spacer>
-      </item>
-      <item row="0" column="3">
-       <widget class="QLabel" name="recordLabel">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+        <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+            <layout class="QVBoxLayout" name="verticalLayout">
+              <item>
+                <widget class="QLabel" name="label">
+                  <property name="text">
+                    <string>RGB data</string>
+                  </property>
+                </widget>
+              </item>
+              <item>
+                <widget class="QFrame" name="RGBframe">
+                  <property name="minimumSize">
+                    <size>
+                      <width>514</width>
+                      <height>426</height>
+                    </size>
+                  </property>
+                  <property name="autoFillBackground">
+                    <bool>true</bool>
+                  </property>
+                  <property name="frameShape">
+                    <enum>QFrame::Box</enum>
+                  </property>
+                  <property name="frameShadow">
+                    <enum>QFrame::Plain</enum>
+                  </property>
+                </widget>
+              </item>
+            </layout>
+          </item>
+          <item row="0" column="1">
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+              <item>
+                <widget class="QLabel" name="label_2">
+                  <property name="text">
+                    <string>Depth data</string>
+                  </property>
+                </widget>
+              </item>
+              <item>
+                <widget class="QFrame" name="depthFrame">
+                  <property name="minimumSize">
+                    <size>
+                      <width>514</width>
+                      <height>426</height>
+                    </size>
+                  </property>
+                  <property name="autoFillBackground">
+                    <bool>true</bool>
+                  </property>
+                  <property name="frameShape">
+                    <enum>QFrame::Box</enum>
+                  </property>
+                  <property name="frameShadow">
+                    <enum>QFrame::Plain</enum>
+                  </property>
+                </widget>
+              </item>
+            </layout>
+          </item>
+          <item row="1" column="0">
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+                <widget class="QLabel" name="label_3">
+                  <property name="text">
+                    <string>Person mask</string>
+                  </property>
+                </widget>
+              </item>
+              <item>
+                <widget class="QFrame" name="maskFrame">
+                  <property name="minimumSize">
+                    <size>
+                      <width>514</width>
+                      <height>426</height>
+                    </size>
+                  </property>
+                  <property name="autoFillBackground">
+                    <bool>true</bool>
+                  </property>
+                  <property name="frameShape">
+                    <enum>QFrame::Box</enum>
+                  </property>
+                  <property name="frameShadow">
+                    <enum>QFrame::Plain</enum>
+                  </property>
+                </widget>
+              </item>
+            </layout>
+          </item>
+          <item row="1" column="1">
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+                <widget class="QLabel" name="label_4">
+                  <property name="text">
+                    <string>Skeleton</string>
+                  </property>
+                </widget>
+              </item>
+              <item>
+                <widget class="QFrame" name="skeletonFrame">
+                  <property name="minimumSize">
+                    <size>
+                      <width>514</width>
+                      <height>426</height>
+                    </size>
+                  </property>
+                  <property name="autoFillBackground">
+                    <bool>true</bool>
+                  </property>
+                  <property name="frameShape">
+                    <enum>QFrame::Box</enum>
+                  </property>
+                  <property name="frameShadow">
+                    <enum>QFrame::Plain</enum>
+                  </property>
+                </widget>
+              </item>
+            </layout>
+          </item>
+        </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+          <rect>
+            <x>1070</x>
+            <y>40</y>
+            <width>281</width>
+            <height>41</height>
+          </rect>
         </property>
-        <property name="minimumSize">
-         <size>
-          <width>60</width>
-          <height>0</height>
-         </size>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+            <widget class="QPushButton" name="startCaptureButton">
+              <property name="text">
+                <string>Start capturing</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="stopCaptureButton">
+              <property name="text">
+                <string>Stop capturing</string>
+              </property>
+            </widget>
+          </item>
+        </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox">
+        <property name="geometry">
+          <rect>
+            <x>1070</x>
+            <y>150</y>
+            <width>281</width>
+            <height>211</height>
+          </rect>
+        </property>
+        <property name="title">
+          <string>General Information</string>
+        </property>
+        <widget class="QWidget" name="layoutWidget">
+          <property name="geometry">
+            <rect>
+              <x>10</x>
+              <y>40</y>
+              <width>263</width>
+              <height>137</height>
+            </rect>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_2">
+            <item row="0" column="0">
+              <spacer name="horizontalSpacer">
+                <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                  <size>
+                    <width>60</width>
+                    <height>20</height>
+                  </size>
+                </property>
+              </spacer>
+            </item>
+            <item row="0" column="3">
+              <widget class="QLabel" name="recordLabel">
+                <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                  </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                  <size>
+                    <width>60</width>
+                    <height>0</height>
+                  </size>
+                </property>
+                <property name="text">
+                  <string>Record</string>
+                </property>
+                <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                </property>
+              </widget>
+            </item>
+            <item row="1" column="0">
+              <widget class="QLabel" name="colorLabel">
+                <property name="text">
+                  <string>Color:</string>
+                </property>
+              </widget>
+            </item>
+            <item row="2" column="0">
+              <widget class="QLabel" name="depthLabel">
+                <property name="text">
+                  <string>Depth: </string>
+                </property>
+              </widget>
+            </item>
+            <item row="2" column="1">
+              <widget class="QLabel" name="depthFps">
+                <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                  </sizepolicy>
+                </property>
+                <property name="text">
+                  <string>--</string>
+                </property>
+                <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                </property>
+              </widget>
+            </item>
+            <item row="2" column="2" alignment="Qt::AlignHCenter">
+              <widget class="QCheckBox" name="depthShowCheck">
+                <property name="text">
+                  <string/>
+                </property>
+              </widget>
+            </item>
+            <item row="2" column="3" alignment="Qt::AlignHCenter">
+              <widget class="QCheckBox" name="depthRecordCheck">
+                <property name="text">
+                  <string/>
+                </property>
+              </widget>
+            </item>
+            <item row="3" column="0">
+              <widget class="QLabel" name="maskLabel">
+                <property name="text">
+                  <string>Mask: </string>
+                </property>
+              </widget>
+            </item>
+            <item row="3" column="1">
+              <widget class="QLabel" name="maskFps">
+                <property name="text">
+                  <string>--</string>
+                </property>
+                <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                </property>
+              </widget>
+            </item>
+            <item row="1" column="1">
+              <widget class="QLabel" name="colorFps">
+                <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                  </sizepolicy>
+                </property>
+                <property name="text">
+                  <string>--</string>
+                </property>
+                <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                </property>
+              </widget>
+            </item>
+            <item row="1" column="2" alignment="Qt::AlignHCenter">
+              <widget class="QCheckBox" name="colorShowCheck">
+                <property name="minimumSize">
+                  <size>
+                    <width>0</width>
+                    <height>0</height>
+                  </size>
+                </property>
+                <property name="text">
+                  <string/>
+                </property>
+                <property name="tristate">
+                  <bool>false</bool>
+                </property>
+              </widget>
+            </item>
+            <item row="3" column="2" alignment="Qt::AlignHCenter">
+              <widget class="QCheckBox" name="maskShowCheck">
+                <property name="text">
+                  <string/>
+                </property>
+              </widget>
+            </item>
+            <item row="0" column="1">
+              <widget class="QLabel" name="fpsLabel">
+                <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                  </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                  <size>
+                    <width>60</width>
+                    <height>0</height>
+                  </size>
+                </property>
+                <property name="text">
+                  <string>FPS</string>
+                </property>
+                <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                </property>
+              </widget>
+            </item>
+            <item row="0" column="2">
+              <widget class="QLabel" name="showLabel">
+                <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                  </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                  <size>
+                    <width>60</width>
+                    <height>0</height>
+                  </size>
+                </property>
+                <property name="text">
+                  <string>Show</string>
+                </property>
+                <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                </property>
+              </widget>
+            </item>
+            <item row="5" column="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+              <widget class="QCheckBox" name="audioShowCheck">
+                <property name="text">
+                  <string/>
+                </property>
+              </widget>
+            </item>
+            <item row="5" column="3" alignment="Qt::AlignHCenter">
+              <widget class="QCheckBox" name="audioRecordCheck">
+                <property name="text">
+                  <string/>
+                </property>
+              </widget>
+            </item>
+            <item row="4" column="3" alignment="Qt::AlignHCenter">
+              <widget class="QCheckBox" name="skeletonRecordCheck">
+                <property name="text">
+                  <string/>
+                </property>
+              </widget>
+            </item>
+            <item row="3" column="3" alignment="Qt::AlignHCenter">
+              <widget class="QCheckBox" name="maskRecordCheck">
+                <property name="text">
+                  <string/>
+                </property>
+              </widget>
+            </item>
+            <item row="4" column="0">
+              <widget class="QLabel" name="skeletonLabel">
+                <property name="text">
+                  <string>Skeleton: </string>
+                </property>
+              </widget>
+            </item>
+            <item row="4" column="1">
+              <widget class="QLabel" name="skeletonFps">
+                <property name="text">
+                  <string>--</string>
+                </property>
+                <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                </property>
+              </widget>
+            </item>
+            <item row="5" column="0">
+              <widget class="QLabel" name="audioLabel">
+                <property name="text">
+                  <string>Audio: </string>
+                </property>
+              </widget>
+            </item>
+            <item row="5" column="1">
+              <widget class="QLabel" name="audioBeam">
+                <property name="text">
+                  <string>--</string>
+                </property>
+                <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                </property>
+              </widget>
+            </item>
+            <item row="4" column="2" alignment="Qt::AlignHCenter">
+              <widget class="QCheckBox" name="skeletonShowCheck">
+                <property name="text">
+                  <string/>
+                </property>
+              </widget>
+            </item>
+            <item row="1" column="3" alignment="Qt::AlignHCenter">
+              <widget class="QCheckBox" name="colorRecordCheck">
+                <property name="text">
+                  <string/>
+                </property>
+              </widget>
+            </item>
+          </layout>
+        </widget>
+      </widget>
+      <widget class="QFrame" name="audioFrame">
+        <property name="geometry">
+          <rect>
+            <x>1070</x>
+            <y>700</y>
+            <width>281</width>
+            <height>221</height>
+          </rect>
+        </property>
+        <property name="frameShape">
+          <enum>QFrame::Box</enum>
+        </property>
+        <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+        </property>
+      </widget>
+      <widget class="QLabel" name="audioLabel_2">
+        <property name="geometry">
+          <rect>
+            <x>1070</x>
+            <y>680</y>
+            <width>281</width>
+            <height>16</height>
+          </rect>
         </property>
         <property name="text">
-         <string>Record</string>
+          <string>Audio</string>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="colorLabel">
-        <property name="text">
-         <string>Color:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="depthLabel">
-        <property name="text">
-         <string>Depth: </string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="depthFps">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>--</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2" alignment="Qt::AlignHCenter">
-       <widget class="QCheckBox" name="depthShowCheck">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="3" alignment="Qt::AlignHCenter">
-       <widget class="QCheckBox" name="depthRecordCheck">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="maskLabel">
-        <property name="text">
-         <string>Mask: </string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLabel" name="maskFps">
-        <property name="text">
-         <string>--</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="colorFps">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>--</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2" alignment="Qt::AlignHCenter">
-       <widget class="QCheckBox" name="colorShowCheck">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="tristate">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2" alignment="Qt::AlignHCenter">
-       <widget class="QCheckBox" name="maskShowCheck">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="fpsLabel">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>60</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>FPS</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLabel" name="showLabel">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>60</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Show</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="2" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-       <widget class="QCheckBox" name="audioShowCheck">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="3" alignment="Qt::AlignHCenter">
-       <widget class="QCheckBox" name="audioRecordCheck">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="3" alignment="Qt::AlignHCenter">
-       <widget class="QCheckBox" name="skeletonRecordCheck">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="3" alignment="Qt::AlignHCenter">
-       <widget class="QCheckBox" name="maskRecordCheck">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="skeletonLabel">
-        <property name="text">
-         <string>Skeleton: </string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QLabel" name="skeletonFps">
-        <property name="text">
-         <string>--</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="audioLabel">
-        <property name="text">
-         <string>Audio: </string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QLabel" name="audioFps">
-        <property name="text">
-         <string>--</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2" alignment="Qt::AlignHCenter">
-       <widget class="QCheckBox" name="skeletonShowCheck">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3" alignment="Qt::AlignHCenter">
-       <widget class="QCheckBox" name="colorRecordCheck">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
+      </widget>
     </widget>
-   </widget>
-   <widget class="QFrame" name="audioFrame">
-    <property name="geometry">
-     <rect>
-      <x>1070</x>
-      <y>700</y>
-      <width>281</width>
-      <height>221</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::Box</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Plain</enum>
-    </property>
-   </widget>
-   <widget class="QLabel" name="audioLabel_2">
-    <property name="geometry">
-     <rect>
-      <x>1070</x>
-      <y>680</y>
-      <width>281</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Audio</string>
-    </property>
-   </widget>
+    <widget class="QMenuBar" name="menuBar">
+      <property name="geometry">
+        <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>1403</width>
+          <height>26</height>
+        </rect>
+      </property>
+    </widget>
+    <widget class="QStatusBar" name="statusBar"/>
+    <widget class="QToolBar" name="mainToolBar">
+      <attribute name="toolBarArea">
+        <enum>TopToolBarArea</enum>
+      </attribute>
+      <attribute name="toolBarBreak">
+        <bool>false</bool>
+      </attribute>
+    </widget>
   </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1403</width>
-     <height>26</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-  </widget>
- </widget>
- <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="kinectgui.qrc"/>
- </resources>
- <connections/>
+  <layoutdefault spacing="6" margin="11"/>
+  <resources>
+    <include location="kinectgui.qrc"/>
+  </resources>
+  <connections/>
 </ui>

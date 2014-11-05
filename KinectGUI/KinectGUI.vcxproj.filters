@@ -84,11 +84,11 @@
     <ClInclude Include="Kinect2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ui_kinectguiaux.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CVImageWidget.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_kinectguiaux.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

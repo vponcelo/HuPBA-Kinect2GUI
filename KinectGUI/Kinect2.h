@@ -1,12 +1,17 @@
 #ifndef KINECT2_H
 #define KINECT2_H
 
+#define IDC_STATUS -1
+
+#include <qdebug.h>
+// Kinect Header files
 #include <Kinect.h>
 #include <strsafe.h>
+#include <Shlobj.h>
+#include <iostream>
+#include <windows.h>
 #include <opencv2\opencv.hpp>
 #include <opencv2\highgui\highgui.hpp>
-#include <qdebug.h>
-#include <iostream>
 
 class Kinect2
 {
@@ -34,6 +39,17 @@ public:
 	HRESULT initializeDefaultSensor();
 
 	/// <summary>
+	/// Static method. 
+	/// Thread that handles frame arrived events
+	/// </summary>
+	static DWORD WINAPI     WorkerThread(_In_  LPVOID lpParameter);
+
+	/// <summary>
+	/// Handles frame arrived events
+	/// </summary>
+	HRESULT                 WorkerThread();
+
+	/// <summary>
 	/// Main processing function
 	/// </summary>
 	void update();
@@ -58,7 +74,7 @@ public:
 	double getBodyIndexFreq();
 	double getDepthFreq();
 	double getRGBFreq();
-	double getAudioFreq();
+	double getAudioBeam();
 
 	float getMean();
 	float getStd();
@@ -75,13 +91,37 @@ private:
 	double						_fDepthFreq;
 	double						_fRGBFreq;
 	double						_fBodyIndexFreq;
-	double						_fAudioFreq;
+	double						_fAudioBeam;
 	int							_nHeight;
 	int							_nWidth;
 	float						_mean;
 	float						_std;
 
+	// Audio
+	static const int			cAudioSamplesPerEnergySample = 40;
+	static const int			cMinEnergy = -90;
+	static const int			cEnergyBufferLength = 1000;
+	static const int			cAudioSamplesPerSecond = 16000;
+	int							_nAccumulatedSampleCount;	
+	int							_nEnergyRefreshIndex;
+	int							_nEnergyIndex;
+	CRITICAL_SECTION			_csLock;
+	float						_fAccumulatedSquareSum;
+	float						_fBeamAngle;
+	float						_fBeamAngleConfidence;
+	float						_fEnergyBuffer[cEnergyBufferLength];
+	float						_fEnergyError;
+	//float						_fEnergyDisplayBuffer[cEnergySamplesToDisplay];	
+	volatile int				_nNewEnergyAvailable;	
+	WAITABLE_HANDLE				_hFrameArrivedEvent;
+	HANDLE						_hTerminateWorkerThread;
+	HANDLE						_hWorkerThread;
 
+	// Audio screen
+	ULONGLONG					_nLastEnergyRefreshTime;
+	//static const int			cEnergySamplesToDisplay = 780;
+
+	
 	//Output data
 	RGBQUAD*					_pOutputRGBX;
 	RGBQUAD*					_pColorRGBX;

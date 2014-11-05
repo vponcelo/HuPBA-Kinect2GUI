@@ -29,6 +29,7 @@ private:
 	double _depthFps;
 	double _RGBFps;
 	double _bodyMaskFps;
+	double _audioBeam;
 
 	bool _finished;
 
@@ -77,6 +78,7 @@ public:
 	double getDepthFps();
 	double getRGBFps();
 	double getBodyMaskFps();
+	double getAudioBeam();
 
 	void finish();
 

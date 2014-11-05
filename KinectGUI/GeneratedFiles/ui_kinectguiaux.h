@@ -41,9 +41,9 @@ public:
 		skeletonImage->setGeometry(QRect(1, 1, ui.skeletonFrame->geometry().width() - 1, ui.skeletonFrame->geometry().height() - 1));
 		skeletonImage->setEnabled(false);
 
-		audioImage = new CVImageWidget(ui.audioFrame);
+		audioImage = new CVImageWidget(ui.audioBeam);
 		audioImage->setObjectName(QStringLiteral("skeletonImage"));
-		audioImage->setGeometry(QRect(1, 1, ui.audioFrame->geometry().width() - 1, ui.audioFrame->geometry().height() - 1));
+		audioImage->setGeometry(QRect(1, 1, ui.audioBeam->geometry().width() - 1, ui.audioBeam->geometry().height() - 1));
 		audioImage->setEnabled(false);
 	}
 };

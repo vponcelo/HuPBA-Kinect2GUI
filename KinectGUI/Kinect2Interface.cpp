@@ -46,6 +46,7 @@ void Kinect2Interface::run()
 		_bodyMaskFps = _kinect->getBodyIndexFreq();
 		_RGBFps = _kinect->getRGBFreq();
 		_depthFps = _kinect->getDepthFreq();
+		_audioBeam = _kinect->getAudioBeam();
 
 		buildSkeletonImage(_skeletonImage);
 		buildDepthImage(_depthImage);
@@ -146,8 +147,8 @@ void Kinect2Interface::buildSkeletonImage(cv::Mat &skeletonImage)
 
 		}
 		//debug
-		cv::imshow("skeleton", skeletonImage);
-		cv::waitKey(30);
+		//cv::imshow("skeleton", skeletonImage);
+		//cv::waitKey(30);
 	}
 }
 
@@ -305,6 +306,11 @@ double Kinect2Interface::getRGBFps()
 double Kinect2Interface::getBodyMaskFps()
 {
 	return _bodyMaskFps;
+}
+
+double Kinect2Interface::getAudioBeam()
+{
+	return _audioBeam;
 }
 
 void Kinect2Interface::finish()
