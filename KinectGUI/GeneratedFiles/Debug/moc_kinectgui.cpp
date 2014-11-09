@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_KinectGUI_t {
-    QByteArrayData data[14];
-    char stringdata[178];
+    QByteArrayData data[16];
+    char stringdata[187];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -42,13 +42,15 @@ QT_MOC_LITERAL(9, 127, 16),
 QT_MOC_LITERAL(10, 144, 2),
 QT_MOC_LITERAL(11, 147, 8),
 QT_MOC_LITERAL(12, 156, 5),
-QT_MOC_LITERAL(13, 162, 15)
+QT_MOC_LITERAL(13, 162, 6),
+QT_MOC_LITERAL(14, 169, 1),
+QT_MOC_LITERAL(15, 171, 15)
     },
     "KinectGUI\0startKinectCapturing\0\0"
     "stopKinectCapturing\0startKinectRecording\0"
     "stopKinectRecording\0updateImages\0"
-    "updateFPS\0saveImages\0cv::VideoWriter&\0"
-    "vw\0cv::Mat&\0image\0checkboxChanged"
+    "updateFPS\0saveFrames\0cv::VideoWriter&\0"
+    "vw\0cv::Mat&\0image\0string\0s\0checkboxChanged"
 };
 #undef QT_MOC_LITERAL
 
@@ -72,8 +74,8 @@ static const uint qt_meta_data_KinectGUI[] = {
        5,    0,   57,    2, 0x08 /* Private */,
        6,    0,   58,    2, 0x08 /* Private */,
        7,    0,   59,    2, 0x08 /* Private */,
-       8,    2,   60,    2, 0x08 /* Private */,
-      13,    1,   65,    2, 0x08 /* Private */,
+       8,    3,   60,    2, 0x08 /* Private */,
+      15,    1,   67,    2, 0x08 /* Private */,
 
  // slots: parameters
     QMetaType::Void,
@@ -82,7 +84,7 @@ static const uint qt_meta_data_KinectGUI[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void, 0x80000000 | 9, 0x80000000 | 11,   10,   12,
+    QMetaType::Void, 0x80000000 | 9, 0x80000000 | 11, 0x80000000 | 13,   10,   12,   14,
     QMetaType::Void, QMetaType::Int,    2,
 
        0        // eod
@@ -99,7 +101,7 @@ void KinectGUI::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, v
         case 3: _t->stopKinectRecording(); break;
         case 4: _t->updateImages(); break;
         case 5: _t->updateFPS(); break;
-        case 6: _t->saveImages((*reinterpret_cast< cv::VideoWriter(*)>(_a[1])),(*reinterpret_cast< cv::Mat(*)>(_a[2]))); break;
+        case 6: _t->saveFrames((*reinterpret_cast< cv::VideoWriter(*)>(_a[1])),(*reinterpret_cast< cv::Mat(*)>(_a[2])),(*reinterpret_cast< string(*)>(_a[3]))); break;
         case 7: _t->checkboxChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }

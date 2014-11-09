@@ -63,7 +63,7 @@ public:
 	Joint* getSkeletonJoints();
 	std::vector<std::vector<int> > getSkeletonJointPoints();
 	CameraSpacePoint* getCameraCoordinates();
-
+	IAudioSource* getAudioSource();
 
 	int getColorWidth();
 	int getColorHeight();
@@ -116,7 +116,7 @@ private:
 	WAITABLE_HANDLE				_hFrameArrivedEvent;
 	HANDLE						_hTerminateWorkerThread;
 	HANDLE						_hWorkerThread;
-
+	
 	// Audio screen
 	ULONGLONG					_nLastEnergyRefreshTime;
 	//static const int			cEnergySamplesToDisplay = 780;
@@ -128,6 +128,9 @@ private:
 	RGBQUAD*					_pDepthRGBX;
 	USHORT*						_pDepth;
 	BYTE*						_pBodyMask;
+
+	//Audio data
+	IAudioSource*				_pAudioSource;
 
 	//Skeleton data
 	Joint*							_joints;

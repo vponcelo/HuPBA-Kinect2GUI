@@ -222,6 +222,7 @@ std::vector<std::vector<int> > Kinect2::getSkeletonJointPoints()
 {
 	return _jointPoints;
 }
+
 int Kinect2::getColorWidth()
 {
 	return cColorWidth;
@@ -276,6 +277,11 @@ double Kinect2::getAudioBeam()
 	return _fAudioBeam;
 }
 
+IAudioSource* Kinect2::getAudioSource()
+{
+	return _pAudioSource;
+}
+
 HRESULT Kinect2::initializeDefaultSensor()
 {
 	HRESULT hr;
@@ -284,6 +290,7 @@ HRESULT Kinect2::initializeDefaultSensor()
 	//IKinectSensorCollection *kinectSensorCollection = 0;
 	//hr = GetKinectSensorCollection(&kinectSensorCollection);
 	hr = GetDefaultKinectSensor(&_pKinectSensor);
+	
 	if (FAILED(hr))
 	{
 		return hr;
@@ -322,17 +329,17 @@ HRESULT Kinect2::initializeDefaultSensor()
 		}
 
 		//Audio
-		IAudioSource* pAudioSource = NULL;
-
+		_pAudioSource = NULL;
+		
 		if (SUCCEEDED(hr))
 		{
 			
-			hr = _pKinectSensor->get_AudioSource(&pAudioSource);
+			hr = _pKinectSensor->get_AudioSource(&_pAudioSource);
 		}
 
 		if (SUCCEEDED(hr))
 		{
-			hr = pAudioSource->OpenReader(&_pAudioBeamFrameReader);
+			hr = _pAudioSource->OpenReader(&_pAudioBeamFrameReader);
 		}
 		
 		if (SUCCEEDED(hr))
@@ -358,7 +365,7 @@ HRESULT Kinect2::initializeDefaultSensor()
 			}
 		}
 
-		safeRelease(pAudioSource);		
+		safeRelease(_pAudioSource);		
 		
 		return hr;		
 	}
@@ -767,6 +774,8 @@ void Kinect2::update()
 	safeRelease(pBodyIndexFrame);
 	safeRelease(pBodyFrame);
 	safeRelease(pMultiSourceFrame);
+	safeRelease(pAudioBeamFrameList);
+	safeRelease(pAudioBeamFrame);
 }
 
 void Kinect2::ProcessFrame(INT64 nTime,
@@ -1018,3 +1027,4 @@ void Kinect2::BodyToScreen(const CameraSpacePoint& bodyPoint, std::vector<int> &
 	points[0] = screenPointX;
 	points[1] = screenPointY;
 }
+

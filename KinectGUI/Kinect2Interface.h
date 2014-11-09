@@ -24,6 +24,7 @@ private:
 	CameraSpacePoint* _cameraCoordinates;
 	Joint* _skeletonJoints;
 	std::vector<std::vector<int> > _skeletonJointPoints;
+	IAudioSource* _audioStream;
 
 	double _skeletonFps;
 	double _depthFps;
@@ -58,6 +59,7 @@ public:
 	std::vector<std::vector<int> > getSkeletonJointPoints();
 	CameraSpacePoint* getCameraCoordinates();
 	QVector<QVector3D> getQtCameraCoordinates();
+	IAudioSource* getAudioSource();
 
 	cv::Mat& getSkeletonImage();
 	cv::Mat& getDepthImage();

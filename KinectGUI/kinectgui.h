@@ -2,12 +2,16 @@
 #define KINECTGUI_H
 
 #include <QtWidgets/QMainWindow>
-#include <opencv2\opencv.hpp>
-#include <opencv2\highgui\highgui.hpp>
-#include <qtimer.h>
+#include <QtCore/qtimer.h>
+#include <iostream>
 #include "ui_kinectgui.h"
 #include "ui_kinectguiaux.h"
 #include "Kinect2Interface.h"
+#include <thread>
+#include <sstream>
+#include <filesystem>
+#include "Poco/MemoryStream.h"
+#include "Poco/BinaryWriter.h"
 
 class KinectGUI : public QMainWindow
 {
@@ -31,9 +35,22 @@ private:
 	QTimer *_timer;
 
 	//Video Writer
-	cv::VideoWriter _vwDepth;
 	cv::VideoWriter _vwColor;
+	cv::VideoWriter _vwDepth;	
 	cv::VideoWriter _vwMask;
+	//int _rgbFrame;
+	//int _depthFrame;
+	//int _maskFrame;
+	
+	//Current date
+	time_t _dateTime;
+
+	//Audio Stream
+	IAudioSource*			_audioStream;
+	IAudioBeamFrameReader*	_pAudioBeamFrameReader;
+	WAITABLE_HANDLE			_hFrameArrivedEvent;
+	std::fstream _fileStream;
+
 	
 	bool _isRecording;
 	bool _isCapturing;
@@ -54,9 +71,16 @@ private:
 
 	//Set if the different image frames are enabled or not
 	void enableImages(bool enabled);
+	
 	//Set if the different image frames are shown or not
-	void showImages(bool show);
+	void showImages(bool show);	
 
+	//Thread to record the audio stream
+	std::thread AudioRecordingThread();
+	int Run();
+	void WriteWavHeader(int recordingLength);
+
+	template<class Interface> void safeRelease(Interface *& ppT);
 
 private slots:
 	//Start gathering from Kinect
@@ -72,7 +96,8 @@ private slots:
 	//Update fps
 	void updateFPS();
 	//Save new images
-	void saveImages(cv::VideoWriter &vw, cv::Mat &image);
+	void saveFrames(cv::VideoWriter& vw, cv::Mat& image, string s);
+	//void saveFrames(cv::Mat& image, int& currentFrame, string s);
 	//Connection to checkboxes
 	void checkboxChanged(int);
 
