@@ -282,6 +282,16 @@ IAudioSource* Kinect2::getAudioSource()
 	return _pAudioSource;
 }
 
+float* Kinect2::getAudioBuffer()
+{
+	return _pAudioBuffer;
+}
+
+IBodyFrame* Kinect2::getBodyFrame()
+{
+	return _pBodyFrame;
+}
+
 HRESULT Kinect2::initializeDefaultSensor()
 {
 	HRESULT hr;
@@ -753,6 +763,8 @@ void Kinect2::update()
 				hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
 			}
 
+			_pBodyFrame = pBodyFrame;
+
 			if (SUCCEEDED(hr))
 			{
 				ProcessBody(nTime, BODY_COUNT, ppBodies);
@@ -945,10 +957,10 @@ void Kinect2::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 void Kinect2::ProcessAudio(IAudioBeamSubFrame* pAudioBeamSubFrame)
 {
 	HRESULT hr = S_OK;
-	float* pAudioBuffer = NULL;
+	_pAudioBuffer = NULL;
 	UINT cbRead = 0;
 
-	hr = pAudioBeamSubFrame->AccessUnderlyingBuffer(&cbRead, (BYTE **)&pAudioBuffer);
+	hr = pAudioBeamSubFrame->AccessUnderlyingBuffer(&cbRead, (BYTE **)&_pAudioBuffer);
 
 	if (cbRead > 0)
 	{
@@ -967,7 +979,7 @@ void Kinect2::ProcessAudio(IAudioBeamSubFrame* pAudioBeamSubFrame)
 			// into a single energy value.
 			__pragma(warning(push))
 				__pragma(warning(disable:6385)) // Suppress warning about the range of i. The range is correct.
-				_fAccumulatedSquareSum += pAudioBuffer[i] * pAudioBuffer[i];
+				_fAccumulatedSquareSum += _pAudioBuffer[i] * _pAudioBuffer[i];
 			__pragma(warning(pop))
 				++_nAccumulatedSampleCount;
 

@@ -219,63 +219,59 @@ void KinectGUI::updateImages()
 //	BYTE *bodyMask = _kinect2Interface->getBodyMask();
 //	BYTE *depthRGBXBuffer = _kinect2Interface->getDepthRGBXBuffer();
 
-	cv::Mat skeletonImage = _kinect2Interface->getSkeletonImage();
-	cv::Mat depthImage = _kinect2Interface->getDepthImage();
-	cv::Mat bodyMaskImage = _kinect2Interface->getBodyMaskImage();
-	cv::Mat colorImage = _kinect2Interface->getColorImage();
+	_skeletonImage = _kinect2Interface->getSkeletonImage();
+	_depthImage = _kinect2Interface->getDepthImage();
+	_bodyMaskImage = _kinect2Interface->getBodyMaskImage();
+	_colorImage = _kinect2Interface->getColorImage();
+	
+	// Use a separate thread for recording modalities, because stream read/write operations
+	// will block the UI thread, and we want to minimize the delay of the UI thread.
+	if (_recordAudio || _recordColor || _recordDepth || 
+		_recordMask	|| _recordSkeleton) _rec = RecordingThread();
 
 	//Color data
-	if (!colorImage.empty())
+	if (!_colorImage.empty())
 	{
 		cv::Mat colorMat;
 		//cv::Size s(_kinect2Interface->getColorWidth() / 3.5, _kinect2Interface->getColorHeight() / 3.5);
 		cv::Size s(_kinect2Interface->getColorWidth() * 0.3, _kinect2Interface->getColorHeight() * 0.4);
-		cv::resize(colorImage, colorMat, s);
+		cv::resize(_colorImage, colorMat, s);
 
 		if (_showColor)
 		{
 			uiAux.rgbDataImage->showImage(colorMat);
-		}
-
-		//if (_isRecording && _recordColor) saveFrames(_vwColor, colorImage, _rgbFrame, "RGB");
-		if (_isRecording && _recordColor) saveFrames(_vwColor, colorImage, "RGB");
+		}			
 	}
 
 	//Body mask data
-	if (!bodyMaskImage.empty())
+	if (!_bodyMaskImage.empty())
 	{
 		if (_showMask) 
 		{
-			uiAux.bodyMaskImage->showImage(bodyMaskImage);
-		}
-
-		//if (_isRecording && _recordMask) saveFrames(_vwMask, bodyMaskImage, _maskFrame, "mask");
-		if (_isRecording && _recordMask) saveFrames(_vwMask, bodyMaskImage, "mask");
+			uiAux.bodyMaskImage->showImage(_bodyMaskImage);
+		}		
 	}
 
 	//Depth data
-	if (!depthImage.empty())
+	if (!_depthImage.empty())
 	{
 		if (_showDepth)
 		{
-			uiAux.depthDataImage->showImage(depthImage);
-		}
-
-		//if (_isRecording && _recordDepth) saveFrames(_vwDepth, depthImage, _depthFrame, "depth");
-		if (_isRecording && _recordDepth) saveFrames(_vwDepth, depthImage, "depth");
+			uiAux.depthDataImage->showImage(_depthImage);
+		}		
 	}
 	
 	//Skeleton data
-	if (!skeletonImage.empty())
+	if (!_skeletonImage.empty())
 	{
 		if (_showSkeleton)
 		{
-			uiAux.skeletonImage->showImage(skeletonImage);
-		}
-
-		if (_isRecording && _recordSkeleton) {//TODO: save Joints }
+			uiAux.skeletonImage->showImage(_skeletonImage);
 		}
 	}
+
+	if (_recordAudio || _recordColor || _recordDepth ||
+		_recordMask || _recordSkeleton) _rec.join();		// Wait for multithreading synchronization
 }
 
 void KinectGUI::stopKinectCapturing()
@@ -314,18 +310,13 @@ void KinectGUI::startKinectRecording()
 	std::tr2::sys::path bp(std::to_string(_dateTime));
 	std::tr2::sys::create_directories(bp);
 
-	/*
 	if (_recordAudio)
 	{
-		// Use a separate thread for capturing audio because audio stream read operations
-		// will block, and we don't want to block main UI thread.
 		_fileStream.open(std::to_string(_dateTime) + ".wav");
 		int rec_time = (int)300 * 2 * 16000;//300 sec (5 min)
 		WriteWavHeader(rec_time);
-		std::thread iface = AudioReadingThread();
 	}
-	*/
-
+		
 	//_rgbFrame = 0;
 	//_depthFrame = 0;
 	//_maskFrame = 0;
@@ -356,7 +347,8 @@ void KinectGUI::startKinectRecording()
 	//_vwMask.open(dateTime.toStdString() + "_mask.avi", -1, 30, cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()));
 	if (_recordColor) _vwColor.open(std::to_string(_dateTime) + "/hi_color.avi", fourCC_code, _kinect2Interface->getRGBFps(), cv::Size(_kinect2Interface->getColorWidth(), _kinect2Interface->getColorHeight()), 1);
 	if (_recordDepth) _vwDepth.open(std::to_string(_dateTime) + "/depth.avi", fourCC_code, _kinect2Interface->getDepthFps(), cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()), 1);
-	if (_recordMask) _vwMask.open(std::to_string(_dateTime) + "/mask.avi", fourCC_code, _kinect2Interface->getBodyMaskFps(), cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()), 1);
+	if (_recordMask) _vwMask.open(std::to_string(_dateTime) + "/mask.avi", fourCC_code, _kinect2Interface->getBodyMaskFps(), cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()), 1);	
+	//if (_recordSkeleton) _vwSkeleton.open(std::to_string(_dateTime) + "/Skeleton.avi", fourCC_code, _kinect2Interface->getSkeletonFps(), cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()), 1);
 }
 
 void KinectGUI::stopKinectRecording()
@@ -365,7 +357,13 @@ void KinectGUI::stopKinectRecording()
 	ui.stopRecordButton->setEnabled(false);
 
 	_isRecording = false;
-
+	
+	if (_recordSkeleton)
+	{
+		string featurePath = std::to_string(_dateTime) + "/skeletons.csv";
+		Skeleton::skeletonsToCSV(_skels, featurePath);
+	}
+	
 	_vwColor.release();
 	_vwDepth.release();
 	_vwMask.release();
@@ -386,132 +384,11 @@ void KinectGUI::saveFrames(cv::VideoWriter &vw, cv::Mat &image, string s)
 	//currentFrame++;
 }
 
-std::thread KinectGUI::AudioRecordingThread() 
-{
-	std::thread t1(&KinectGUI::Run, this);
-	return t1;
-	
-}
-
-int KinectGUI::Run()
-{
-	HRESULT hr = S_OK;
-	IAudioBeamFrameArrivedEventArgs* pAudioBeamFrameArrivedEventArgs = NULL;
-	IAudioBeamFrameReference* pAudioBeamFrameReference = NULL;
-	IAudioBeamFrameList* pAudioBeamFrameList = NULL;
-	IAudioBeamFrame* pAudioBeamFrame = NULL;
-	UINT statusMessageFramesToPersistRemaining = 0;
-	BOOL clearStatusMessage = FALSE;
-	UINT32 subFrameCount = 0;
-
-	_audioStream = _kinect2Interface->getAudioSource();
-
-	hr = _audioStream->OpenReader(&_pAudioBeamFrameReader);
-
-	if (SUCCEEDED(hr))
-	{
-		// Process new audio frame
-		hr = _pAudioBeamFrameReader->GetFrameArrivedEventData(_hFrameArrivedEvent, &pAudioBeamFrameArrivedEventArgs);
-		if (SUCCEEDED(hr))
-		{
-			hr = pAudioBeamFrameArrivedEventArgs->get_FrameReference(&pAudioBeamFrameReference);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			hr = pAudioBeamFrameReference->AcquireBeamFrames(&pAudioBeamFrameList);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			// Only one audio beam is currently supported
-			hr = pAudioBeamFrameList->OpenAudioBeamFrame(0, &pAudioBeamFrame);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			hr = pAudioBeamFrame->get_SubFrameCount(&subFrameCount);
-		}
-
-		if (SUCCEEDED(hr) && subFrameCount > 0)
-		{
-			for (UINT32 i = 0; i < subFrameCount; i++)
-			{
-				// Process all subframes
-				IAudioBeamSubFrame* pAudioBeamSubFrame = NULL;
-
-				hr = pAudioBeamFrame->GetSubFrame(i, &pAudioBeamSubFrame);
-
-				if (SUCCEEDED(hr))
-				{
-					float* pAudioBuffer = NULL;
-					UINT cbRead = 0;
-
-					hr = pAudioBeamSubFrame->AccessUnderlyingBuffer(&cbRead, (BYTE **)&pAudioBuffer);
-
-					if (cbRead > 0)
-					{
-						/*
-						DWORD nSampleCount = cbRead / sizeof(float);
-						float _fAccumulatedSquareSum;
-						int	_nAccumulatedSampleCount;
-						static const int cAudioSamplesPerEnergySample = 40;
-						// Calculate energy from audio						
-						for (UINT i = 0; i < nSampleCount; i++)
-						{
-							// Compute the sum of squares of audio samples that will get accumulated
-							// into a single energy value.
-							__pragma(warning(push))
-								__pragma(warning(disable:6385)) // Suppress warning about the range of i. The range is correct.
-								_fAccumulatedSquareSum += pAudioBuffer[i] * pAudioBuffer[i];
-							__pragma(warning(pop))
-								++_nAccumulatedSampleCount;
-
-							if (_nAccumulatedSampleCount < cAudioSamplesPerEnergySample)
-							{
-								continue;
-							}
-						}*/
-						_fileStream << pAudioBuffer;
-					}
-				}
-				safeRelease(pAudioBeamSubFrame);
-			}
-		}
-
-		safeRelease(pAudioBeamFrame);
-		safeRelease(pAudioBeamFrameList);
-		safeRelease(pAudioBeamFrameReference);
-		safeRelease(pAudioBeamFrameArrivedEventArgs);
-
-		if (FAILED(hr))
-		{
-
-			// Persist the status message for some arbitrary amount of time, for example 30 successfully acquired audio frames
-			statusMessageFramesToPersistRemaining = 30;
-		}
-		else if (clearStatusMessage)
-		{
-			// Clear any previous status messages if needed
-			clearStatusMessage = FALSE;
-		}
-		else if (statusMessageFramesToPersistRemaining > 0)
-		{
-			// Update frame counter and signal a reset of status message when the counter hits zero
-			if (--statusMessageFramesToPersistRemaining == 0)
-			{
-				clearStatusMessage = TRUE;
-			}
-		}
-	}
-	return 0;
-}
-
 void KinectGUI::WriteWavHeader(int recodingLength)
 {
 	int cbFormat = 18; //sizeof(WAVEFORMATEX)
 	WAVEFORMATEX format;
-	
+
 	format.wFormatTag = 1;
 	format.nChannels = 1;
 	format.nSamplesPerSec = 16000;
@@ -554,6 +431,107 @@ void KinectGUI::WriteWavHeader(int recodingLength)
 
 	delete(myBinaryWriter);
 	delete(memStream);
+}
+
+Skeleton KinectGUI::getTrackedSkeleton(IBodyFrame* bodyFrame, UINT64 id, bool first) {
+	std::vector<Skeleton> skels = getSkeletonsFromBodyFrame(bodyFrame);
+	if (skels.size() > 0) {
+		if (first) return skels[0];
+		for (int i = 0; i < skels.size(); ++i) {
+			if (id == skels[i].getTrackingID()) return skels[i];
+		}
+	}
+	return Skeleton();
+}
+
+std::vector<Skeleton> KinectGUI::getSkeletonsFromBodyFrame(IBodyFrame* bodyFrame) {
+	const int N_BODIES = BODY_COUNT;
+	INT64 nTime = 0;
+	HRESULT hr;
+	hr = bodyFrame->get_RelativeTime(&nTime);
+	IBody* bodies[N_BODIES] = { NULL };
+
+	std::vector<Skeleton> skeletons;
+
+	if (SUCCEEDED(hr)) hr = bodyFrame->GetAndRefreshBodyData(N_BODIES, bodies);
+	if (SUCCEEDED(hr)) {
+		for (int i = 0; i < N_BODIES; ++i) {
+			IBody* body = bodies[i];
+			if (body) {
+				BOOLEAN tracked = false;
+				body->get_IsTracked(&tracked);
+				if (tracked) {
+					Skeleton auxSkel = KinectGUI::IBodyToSkeleton(body);
+					skeletons.push_back(auxSkel);
+					/*std::array<HandState, 2> hands = auxSkel.getHandState();
+					std::cout << "\t Left hand state is " << hands[0] << " and Right hand state is " << hands[1] << std::endl;*/
+				}
+			}
+		}
+	}
+
+	return skeletons;
+}
+
+Skeleton KinectGUI::IBodyToSkeleton(IBody* body) {
+	//Hands
+	TrackingConfidence	leftTc, rightTc;
+	body->get_HandLeftConfidence(&leftTc);
+	body->get_HandRightConfidence(&rightTc);
+
+	HandState leftHs = HandState_Unknown, rightHs = HandState_Unknown;
+	body->get_HandLeftState(&leftHs);
+	body->get_HandRightState(&rightHs);
+
+	//Tracking
+	BOOLEAN	isTracked;
+	UINT64 trackingId;
+	body->get_TrackingId(&trackingId);
+	body->get_IsTracked(&isTracked);
+
+	//Joints
+	JointOrientation jointOrientations[JointType_Count];
+	Joint joints[JointType_Count];
+	body->GetJointOrientations(_countof(jointOrientations), jointOrientations);
+	body->GetJoints(_countof(joints), joints);
+
+	return Skeleton(leftHs, rightHs, leftTc, rightTc, isTracked, trackingId, jointOrientations, joints);
+}
+
+std::thread KinectGUI::RecordingThread()
+{
+	std::thread t1(&KinectGUI::Run, this);
+	return t1;
+}
+
+int KinectGUI::Run()
+{
+	if (_isRecording && _recordAudio)
+	{	
+		_audioBuffer = _kinect2Interface->getAudioBuffer();
+		_fileStream << _audioBuffer;
+	}
+
+	//if (_isRecording && _recordColor && !_colorImage.empty()) saveFrames(_vwColor, _colorImage, _rgbFrame, "RGB");
+	if (_isRecording && _recordColor && !_colorImage.empty()) saveFrames(_vwColor, _colorImage, "RGB");
+	//if (_isRecording && _recordMask && !_maskImage.empty()) saveFrames(_vwMask, bodyMaskImage, _maskFrame, "mask");
+	if (_isRecording && _recordMask && !_bodyMaskImage.empty()) saveFrames(_vwMask, _bodyMaskImage, "mask");
+	//if (_isRecording && _recordDepth && !_depthImage.empty()) saveFrames(_vwDepth, _depthImage, _depthFrame, "depth");
+	if (_isRecording && _recordDepth && !_depthImage.empty()) saveFrames(_vwDepth, _depthImage, "depth");
+
+	if (_isRecording && _recordSkeleton && !_bodyMaskImage.empty()) {
+		//saveFrames(_vwDepth, _skeletonImage, _skeletonFrame, "skeleton");
+		//saveFrames(_vwDepth, _skeletonImage, "skeleton");
+
+		_bodyFrame = _kinect2Interface->getBodyFrame();
+		if (_bodyFrame) {
+			Skeleton sk = KinectGUI::getTrackedSkeleton(_bodyFrame, 0, true);
+			_skels.push_back(sk);
+		}
+		safeRelease(_bodyFrame); // If not the bodyFrame is not got again
+	}
+
+	return 0;
 }
 
 template<class Interface> void KinectGUI::safeRelease(Interface *& ppT)

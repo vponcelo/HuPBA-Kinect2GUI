@@ -12,6 +12,7 @@
 #include <filesystem>
 #include "Poco/MemoryStream.h"
 #include "Poco/BinaryWriter.h"
+#include "Skeleton.h"
 
 class KinectGUI : public QMainWindow
 {
@@ -35,22 +36,33 @@ private:
 	QTimer *_timer;
 
 	//Video Writer
+	cv::Mat _skeletonImage;
+	cv::Mat	_depthImage;
+	cv::Mat	_bodyMaskImage;
+	cv::Mat	_colorImage;
 	cv::VideoWriter _vwColor;
 	cv::VideoWriter _vwDepth;	
 	cv::VideoWriter _vwMask;
+	cv::VideoWriter _vwSkeleton;
 	//int _rgbFrame;
 	//int _depthFrame;
 	//int _maskFrame;
+	//int _skeletonFrame;
 	
 	//Current date
 	time_t _dateTime;
 
-	//Audio Stream
-	IAudioSource*			_audioStream;
-	IAudioBeamFrameReader*	_pAudioBeamFrameReader;
-	WAITABLE_HANDLE			_hFrameArrivedEvent;
-	std::fstream _fileStream;
+	//Body Frame
+	IBodyFrame*				_bodyFrame;
+	vector<Skeleton>		_skels;
 
+	//Audio Stream
+	float*					_audioBuffer;
+	IAudioSource*			_audioStream;
+	std::fstream			_fileStream;
+
+	//Recording thread
+	std::thread				_rec;
 	
 	bool _isRecording;
 	bool _isCapturing;
@@ -72,13 +84,18 @@ private:
 	//Set if the different image frames are enabled or not
 	void enableImages(bool enabled);
 	
-	//Set if the different image frames are shown or not
-	void showImages(bool show);	
-
-	//Thread to record the audio stream
-	std::thread AudioRecordingThread();
+	//Thread to record the streams
+	std::thread RecordingThread();
 	int Run();
+
+	//Set if the different image frames are shown or not
+	void showImages(bool show);
+	
 	void WriteWavHeader(int recordingLength);
+
+	Skeleton getTrackedSkeleton(IBodyFrame* bodyFrame, UINT64 id, bool first);
+	std::vector<Skeleton> getSkeletonsFromBodyFrame(IBodyFrame* bodyFrame);
+	Skeleton KinectGUI::IBodyToSkeleton(IBody* body);
 
 	template<class Interface> void safeRelease(Interface *& ppT);
 

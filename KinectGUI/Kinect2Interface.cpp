@@ -42,6 +42,8 @@ void Kinect2Interface::run()
 		_skeletonJoints = _kinect->getSkeletonJoints();
 		_skeletonJointPoints = _kinect->getSkeletonJointPoints();
 		_audioStream = _kinect->getAudioSource();
+		_audioBuffer = _kinect->getAudioBuffer();
+		_bodyFrame = _kinect->getBodyFrame();
 
 		_skeletonFps = _kinect->getBodyFreq();
 		_bodyMaskFps = _kinect->getBodyIndexFreq();
@@ -194,6 +196,16 @@ void Kinect2Interface::drawBone(cv::Mat &image, const Joint* joints, const std::
 		cv::line(image, p1, p2, cv::Scalar(250, 250, 250), 4, 8);
 	//	qDebug() << "drawing inferred bone" << joint0 << " to " << joint1;
 	}
+}
+
+IBodyFrame* Kinect2Interface::getBodyFrame()
+{
+	return _bodyFrame;
+}
+
+float* Kinect2Interface::getAudioBuffer()
+{
+	return _audioBuffer;
 }
 
 IAudioSource* Kinect2Interface::getAudioSource()

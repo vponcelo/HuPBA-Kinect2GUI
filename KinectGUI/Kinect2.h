@@ -64,6 +64,8 @@ public:
 	std::vector<std::vector<int> > getSkeletonJointPoints();
 	CameraSpacePoint* getCameraCoordinates();
 	IAudioSource* getAudioSource();
+	float* getAudioBuffer();
+	IBodyFrame* getBodyFrame();
 
 	int getColorWidth();
 	int getColorHeight();
@@ -111,6 +113,7 @@ private:
 	float						_fBeamAngleConfidence;
 	float						_fEnergyBuffer[cEnergyBufferLength];
 	float						_fEnergyError;
+	float*						_pAudioBuffer;
 	//float						_fEnergyDisplayBuffer[cEnergySamplesToDisplay];	
 	volatile int				_nNewEnergyAvailable;	
 	WAITABLE_HANDLE				_hFrameArrivedEvent;
@@ -131,6 +134,9 @@ private:
 
 	//Audio data
 	IAudioSource*				_pAudioSource;
+
+	//Body Frame
+	IBodyFrame*					_pBodyFrame;
 
 	//Skeleton data
 	Joint*							_joints;
