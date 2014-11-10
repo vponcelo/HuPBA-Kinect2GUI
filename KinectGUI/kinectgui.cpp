@@ -312,7 +312,8 @@ void KinectGUI::startKinectRecording()
 
 	if (_recordAudio)
 	{
-		_fileStream.open(std::to_string(_dateTime) + ".wav");
+		// http://stackoverflow.com/questions/14204902/record-audio-with-kinect ( C# adaptation ) 
+		_fileStream.open(std::to_string(_dateTime) + ".wav");		// this stream doesn't create the file
 		int rec_time = (int)300 * 2 * 16000;//300 sec (5 min)
 		WriteWavHeader(rec_time);
 	}
@@ -400,6 +401,7 @@ void KinectGUI::WriteWavHeader(int recodingLength)
 	int bufferSize = 64;
 	char *_buffer = (char *)malloc(bufferSize);
 
+	// http://stackoverflow.com/questions/10926767/ios-example-of-usage-pocobinaryreader-pocobinarywriter
 	// >> WRITE BLOCK <<   
 	//We need to use a memory stream because the BinaryWriter will close the underlying stream when it is closed
 	Poco::MemoryOutputStream *memStream = new Poco::MemoryOutputStream(_buffer, bufferSize);
@@ -508,7 +510,7 @@ int KinectGUI::Run()
 {
 	if (_isRecording && _recordAudio)
 	{	
-		_audioBuffer = _kinect2Interface->getAudioBuffer();
+		_audioBuffer = _kinect2Interface->getAudioBuffer();		// It seems the audio buffers don't correpond
 		_fileStream << _audioBuffer;
 	}
 
@@ -523,7 +525,7 @@ int KinectGUI::Run()
 		//saveFrames(_vwDepth, _skeletonImage, _skeletonFrame, "skeleton");
 		//saveFrames(_vwDepth, _skeletonImage, "skeleton");
 
-		_bodyFrame = _kinect2Interface->getBodyFrame();
+		_bodyFrame = _kinect2Interface->getBodyFrame();			// It seems the body frames don't correpond
 		if (_bodyFrame) {
 			Skeleton sk = KinectGUI::getTrackedSkeleton(_bodyFrame, 0, true);
 			_skels.push_back(sk);
