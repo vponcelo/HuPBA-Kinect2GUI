@@ -469,6 +469,7 @@ std::vector<Skeleton> KinectGUI::getSkeletonsFromBodyFrame(IBodyFrame* bodyFrame
 					std::cout << "\t Left hand state is " << hands[0] << " and Right hand state is " << hands[1] << std::endl;*/
 				}
 			}
+			safeRelease(body);
 		}
 	}
 
