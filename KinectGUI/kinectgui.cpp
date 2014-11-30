@@ -23,6 +23,8 @@ KinectGUI::KinectGUI(QWidget *parent)
 	_recordMask = false;
 	_recordSkeleton = false;
 	_recordAudio = false;	
+
+	_imageSize = cv::Size(ui.depthFrame->geometry().width() - 2, ui.depthFrame->geometry().height() - 2);
 }
 
 KinectGUI::~KinectGUI()
@@ -40,6 +42,7 @@ void KinectGUI::setupInterfaceBehavior()
 	connect(ui.stopCaptureButton, SIGNAL(clicked()), this, SLOT(stopKinectCapturing()));
 	connect(ui.startRecordButton, SIGNAL(clicked()), this, SLOT(startKinectRecording()));
 	connect(ui.stopRecordButton, SIGNAL(clicked()), this, SLOT(stopKinectRecording()));
+	connect(this, SIGNAL(resized()), this, SLOT(changeImageSize()));
 
 	_mapper = new QSignalMapper(this);
 	_mapper->setMapping(ui.colorShowCheck, 0);
@@ -236,6 +239,7 @@ void KinectGUI::updateImages()
 		//cv::Size s(_kinect2Interface->getColorWidth() / 3.5, _kinect2Interface->getColorHeight() / 3.5);
 		cv::Size s(_kinect2Interface->getColorWidth() * 0.3, _kinect2Interface->getColorHeight() * 0.4);
 		cv::resize(_colorImage, colorMat, s);
+		cv::resize(colorMat, colorMat, _imageSize);
 
 		if (_showColor)
 		{
@@ -246,27 +250,38 @@ void KinectGUI::updateImages()
 	//Body mask data
 	if (!_bodyMaskImage.empty())
 	{
+
+		cv::Mat bodyMaskMat;
+		//cv::Size s(_kinect2Interface->getColorWidth() / 3.5, _kinect2Interface->getColorHeight() / 3.5);
+		cv::resize(_bodyMaskImage, bodyMaskMat, _imageSize);
+
 		if (_showMask) 
 		{
-			uiAux.bodyMaskImage->showImage(_bodyMaskImage);
+			uiAux.bodyMaskImage->showImage(bodyMaskMat);
 		}		
 	}
 
 	//Depth data
 	if (!_depthImage.empty())
 	{
+		cv::Mat depthMat;
+		cv::resize(_depthImage, depthMat, _imageSize);
+
 		if (_showDepth)
 		{
-			uiAux.depthDataImage->showImage(_depthImage);
+			uiAux.depthDataImage->showImage(depthMat);
 		}		
 	}
 	
 	//Skeleton data
 	if (!_skeletonImage.empty())
 	{
+		cv::Mat skeletonMat;
+		cv::resize(_skeletonImage, skeletonMat, _imageSize);
+
 		if (_showSkeleton)
 		{
-			uiAux.skeletonImage->showImage(_skeletonImage);
+			uiAux.skeletonImage->showImage(skeletonMat);
 		}
 	}
 
@@ -361,7 +376,7 @@ void KinectGUI::stopKinectRecording()
 	
 	if (_recordSkeleton)
 	{
-		string featurePath = std::to_string(_dateTime) + "/skeletons.csv";
+		std::string featurePath = std::to_string(_dateTime) + "/skeletons.csv";
 		Skeleton::skeletonsToCSV(_skels, featurePath);
 	}
 	
@@ -371,7 +386,7 @@ void KinectGUI::stopKinectRecording()
 }
 
 //void KinectGUI::saveFrames(cv::Mat &image, int currentFrame, string s)
-void KinectGUI::saveFrames(cv::VideoWriter &vw, cv::Mat &image, string s)
+void KinectGUI::saveFrames(cv::VideoWriter &vw, cv::Mat &image, std::string s)
 {	
 	// write frames to video
 	if (vw.isOpened())
@@ -398,7 +413,8 @@ void KinectGUI::WriteWavHeader(int recodingLength)
 	format.wBitsPerSample = 16;
 	format.cbSize = 0;
 
-	int bufferSize = 64;
+
+int bufferSize = 64;
 	char *_buffer = (char *)malloc(bufferSize);
 
 	// http://stackoverflow.com/questions/10926767/ios-example-of-usage-pocobinaryreader-pocobinarywriter
@@ -535,6 +551,16 @@ int KinectGUI::Run()
 	}
 
 	return 0;
+}
+
+void KinectGUI::resizeEvent(QResizeEvent *event)
+{
+	emit this->resized();
+}
+
+void KinectGUI::changeImageSize()
+{
+	_imageSize = cv::Size(ui.depthFrame->geometry().width() - 2, ui.depthFrame->geometry().height()-  2);
 }
 
 template<class Interface> void KinectGUI::safeRelease(Interface *& ppT)

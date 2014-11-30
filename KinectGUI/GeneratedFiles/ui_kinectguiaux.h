@@ -45,6 +45,8 @@ public:
 		audioImage->setObjectName(QStringLiteral("skeletonImage"));
 		audioImage->setGeometry(QRect(1, 1, ui.audioBeam->geometry().width() - 1, ui.audioBeam->geometry().height() - 1));
 		audioImage->setEnabled(false);
+
+		ui.gridLayout->setOriginCorner(Qt::TopLeftCorner);
 	}
 };
 
