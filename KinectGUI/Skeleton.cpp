@@ -96,7 +96,7 @@ bool Skeleton::operator==(const Skeleton& b) {
 
 std::ostream& operator<<(std::ostream& os, const Skeleton& sk) {
 	os << sk.leftHs << ", " << sk.leftTc << ", " << sk.rightHs << ", " << sk.rightTc << ", ";
-	os << (bool)sk.isTracked << ", " << sk.trackingId << ", ";
+	os << (bool)sk.isTracked << ", "; //<< sk.trackingId << ", ";
 
 	os << std::setprecision(std::numeric_limits<float>::max_digits10); // Set max precision
 	//Joints
@@ -118,7 +118,7 @@ void Skeleton::skeletonsToCSV(std::vector<Skeleton> gesture, std::string path) {
 
 	// Write header
 	ofs << "sep=, " << std::endl;
-	ofs << "LeftHandState, LeftHandTrackingConfidence, RightHandState, RightHandTrackingConfidence, TrackingState, TrackingID, ";
+	ofs << "LeftHandState, LeftHandTrackingConfidence, RightHandState, RightHandTrackingConfidence, TrackingState";// , TrackingID, ";
 	// TODO change joint number by name?
 	int i = 0;
 	for (i = 0; i < nJoints; ++i) ofs << "Joint" << i << ", ";
