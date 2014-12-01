@@ -8,7 +8,7 @@ Kinect2::Kinect2() :
 
 _fFreq(0),
 _nLastCounter(0),
-_nLastCounterBody(0),
+_nLastCounterBody (0),
 _nFramesSinceUpdate(0),
 _nStartTime(0),
 _nNextStatusTime(0),
@@ -112,7 +112,7 @@ Kinect2::~Kinect2()
 			_pAudioBeamFrameReader->UnsubscribeFrameArrived(_hFrameArrivedEvent);
 		}
 
-		SafeRelease(_pAudioBeamFrameReader);
+		safeRelease(_pAudioBeamFrameReader);
 	}
 
 	DeleteCriticalSection(&_csLock);
@@ -160,10 +160,10 @@ Kinect2::~Kinect2()
 		_pBodyMask = NULL;
 	}
 	// done with frame reader
-	SafeRelease(_pMultiSourceFrameReader);
+	safeRelease(_pMultiSourceFrameReader);
 
 	// done with coordinate mapper
-	SafeRelease(_pCoordinateMapper);
+	safeRelease(_pCoordinateMapper);
 
 	// close the Kinect Sensor
 	if (_pKinectSensor)
@@ -171,7 +171,16 @@ Kinect2::~Kinect2()
 		_pKinectSensor->Close();
 	}
 
-	SafeRelease(_pKinectSensor);
+	safeRelease(_pKinectSensor);
+}
+
+template<class Interface> void Kinect2::safeRelease(Interface *& ppT)
+{
+	if (ppT)
+	{
+		ppT->Release();
+		ppT = NULL;
+	}
 }
 
 USHORT* Kinect2::getDepth()
@@ -283,41 +292,6 @@ IBodyFrame* Kinect2::getBodyFrame()
 	return _pBodyFrame;
 }
 
-IBody* Kinect2::getBody()
-{
-	return _pBody;
-}
-
-Skeleton Kinect2::getSkeleton()
-{
-	return _bodySkeleton;
-}
-
-Skeleton Kinect2::IBodyToSkeleton(IBody* body) {
-	//Hands
-	TrackingConfidence	leftTc, rightTc;
-	body->get_HandLeftConfidence(&leftTc);
-	body->get_HandRightConfidence(&rightTc);
-
-	HandState leftHs = HandState_Unknown, rightHs = HandState_Unknown;
-	body->get_HandLeftState(&leftHs);
-	body->get_HandRightState(&rightHs);
-
-	//Tracking
-	BOOLEAN	isTracked;
-	UINT64 trackingId;
-	body->get_TrackingId(&trackingId);
-	body->get_IsTracked(&isTracked);
-
-	//Joints
-	JointOrientation jointOrientations[JointType_Count];
-	Joint joints[JointType_Count];
-	body->GetJointOrientations(_countof(jointOrientations), jointOrientations);
-	body->GetJoints(_countof(joints), joints);
-
-	return Skeleton(leftHs, rightHs, leftTc, rightTc, isTracked, trackingId, jointOrientations, joints);
-}
-
 HRESULT Kinect2::initializeDefaultSensor()
 {
 	HRESULT hr;
@@ -401,7 +375,7 @@ HRESULT Kinect2::initializeDefaultSensor()
 			}
 		}
 
-		SafeRelease(_pAudioSource);		
+		safeRelease(_pAudioSource);		
 		
 		return hr;		
 	}
@@ -486,14 +460,14 @@ HRESULT Kinect2::WorkerThread()
 						ProcessAudio(pAudioBeamSubFrame);
 					}
 
-					SafeRelease(pAudioBeamSubFrame);
+					safeRelease(pAudioBeamSubFrame);
 				}
 			}
 
-			SafeRelease(pAudioBeamFrame);
-			SafeRelease(pAudioBeamFrameList);
-			SafeRelease(pAudioBeamFrameReference);
-			SafeRelease(pAudioBeamFrameArrivedEventArgs);
+			safeRelease(pAudioBeamFrame);
+			safeRelease(pAudioBeamFrameList);
+			safeRelease(pAudioBeamFrameReference);
+			safeRelease(pAudioBeamFrameArrivedEventArgs);
 
 			if (FAILED(hr))
 			{
@@ -546,10 +520,9 @@ void Kinect2::update()
 	IDepthFrame* pDepthFrame = NULL;
 	IColorFrame* pColorFrame = NULL;
 	IBodyIndexFrame* pBodyIndexFrame = NULL;
-	IBodyFrame* pBodyFrame = NULL;
+	IBodyFrame* pBodyFrame = NULL;	
 	IAudioBeamFrameList* pAudioBeamFrameList = NULL;
 	IAudioBeamFrame* pAudioBeamFrame = NULL;
-	_bodySkeleton = Skeleton();
 
 	//Audio
 	ULONGLONG previousRefreshTime = _nLastEnergyRefreshTime;
@@ -598,7 +571,7 @@ void Kinect2::update()
 			hr = pDepthFrameReference->AcquireFrame(&pDepthFrame);
 		}
 
-		SafeRelease(pDepthFrameReference);
+		safeRelease(pDepthFrameReference);
 	}
 
 	if (SUCCEEDED(hr))
@@ -611,7 +584,7 @@ void Kinect2::update()
 			hr = pColorFrameReference->AcquireFrame(&pColorFrame);
 		}
 
-		SafeRelease(pColorFrameReference);
+		safeRelease(pColorFrameReference);
 	}
 
 	if (SUCCEEDED(hr))
@@ -624,21 +597,21 @@ void Kinect2::update()
 			hr = pBodyIndexFrameReference->AcquireFrame(&pBodyIndexFrame);
 		}
 
-		SafeRelease(pBodyIndexFrameReference);
+		safeRelease(pBodyIndexFrameReference);
 	}
 
 	if (SUCCEEDED(hr))
 	{
-		IBodyFrameReference* _pBodyFrameReference = NULL;
+		IBodyFrameReference* pBodyFrameReference = NULL;
 
-		hr = pMultiSourceFrame->get_BodyFrameReference(&_pBodyFrameReference);
+		hr = pMultiSourceFrame->get_BodyFrameReference(&pBodyFrameReference);
 
 		if (SUCCEEDED(hr))
 		{
-			hr = _pBodyFrameReference->AcquireFrame(&pBodyFrame);			
+			hr = pBodyFrameReference->AcquireFrame(&pBodyFrame);
 		}
 
-		SafeRelease(_pBodyFrameReference);
+		safeRelease(pBodyFrameReference);
 	}
 
 	if (SUCCEEDED(hr))
@@ -790,6 +763,8 @@ void Kinect2::update()
 				hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
 			}
 
+			_pBodyFrame = pBodyFrame;
+
 			if (SUCCEEDED(hr))
 			{
 				ProcessBody(nTime, BODY_COUNT, ppBodies);
@@ -797,22 +772,22 @@ void Kinect2::update()
 
 			for (int i = 0; i < _countof(ppBodies); ++i)
 			{
-				SafeRelease(ppBodies[i]);
+				safeRelease(ppBodies[i]);
 			}
 		}
 
-		SafeRelease(pDepthFrameDescription);
-		SafeRelease(pColorFrameDescription);
-		SafeRelease(pBodyIndexFrameDescription);
+		safeRelease(pDepthFrameDescription);
+		safeRelease(pColorFrameDescription);
+		safeRelease(pBodyIndexFrameDescription);
 	}
 
-	SafeRelease(pDepthFrame);
-	SafeRelease(pColorFrame);
-	SafeRelease(pBodyIndexFrame);
-	SafeRelease(pBodyFrame);
-	SafeRelease(pMultiSourceFrame);
-	SafeRelease(pAudioBeamFrameList);
-	SafeRelease(pAudioBeamFrame);
+	safeRelease(pDepthFrame);
+	safeRelease(pColorFrame);
+	safeRelease(pBodyIndexFrame);
+	safeRelease(pBodyFrame);
+	safeRelease(pMultiSourceFrame);
+	safeRelease(pAudioBeamFrameList);
+	safeRelease(pAudioBeamFrame);
 }
 
 void Kinect2::ProcessFrame(INT64 nTime,
@@ -916,6 +891,7 @@ void Kinect2::ProcessFrame(INT64 nTime,
 
 void Kinect2::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 {
+
 	for (int i = 0; i < nBodyCount; ++i)
 	{
 		IBody* pBody = ppBodies[i];
@@ -929,7 +905,6 @@ void Kinect2::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 				Joint joints[JointType_Count];
 				std::vector<std::vector<int> > jointPoints(JointType_Count);
 				
-				_bodySkeleton = IBodyToSkeleton(pBody);
 				//HandState leftHandState = HandState_Unknown;
 				//HandState rightHandState = HandState_Unknown;
 
@@ -937,9 +912,6 @@ void Kinect2::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 				//pBody->get_HandRightState(&rightHandState);
 
 				hr = pBody->GetJoints(_countof(joints), joints);
-
-				//SafeRelease(pBody);
-
 				if (SUCCEEDED(hr))
 				{
 					for (int j = 0; j < _countof(joints); ++j)

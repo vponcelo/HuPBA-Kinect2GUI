@@ -41,9 +41,10 @@ void Kinect2Interface::run()
 		_cameraCoordinates = _kinect->getCameraCoordinates();
 		_skeletonJoints = _kinect->getSkeletonJoints();
 		_skeletonJointPoints = _kinect->getSkeletonJointPoints();
+		_audioStream = _kinect->getAudioSource();
 		_audioBuffer = _kinect->getAudioBuffer();
-		_bodySkeleton = _kinect->getSkeleton();
-		
+		_bodyFrame = _kinect->getBodyFrame();
+
 		_skeletonFps = _kinect->getBodyFreq();
 		_bodyMaskFps = _kinect->getBodyIndexFreq();
 		_RGBFps = _kinect->getRGBFreq();
@@ -197,14 +198,19 @@ void Kinect2Interface::drawBone(cv::Mat &image, const Joint* joints, const std::
 	}
 }
 
-Skeleton Kinect2Interface::getSkeleton()
+IBodyFrame* Kinect2Interface::getBodyFrame()
 {
-	return _bodySkeleton;
+	return _bodyFrame;
 }
 
 float* Kinect2Interface::getAudioBuffer()
 {
 	return _audioBuffer;
+}
+
+IAudioSource* Kinect2Interface::getAudioSource()
+{
+	return _audioStream;
 }
 
 USHORT* Kinect2Interface::getDepthBuffer()

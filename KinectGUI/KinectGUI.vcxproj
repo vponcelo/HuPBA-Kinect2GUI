@@ -106,7 +106,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(KINECTSDK20_DIR)\Lib\x64;$(QTDIR)\lib;$(OPENCV_DIR_64)\lib;.\poco-1.4.7\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>avrt.lib;mfuuid.lib;mfplat.lib;wmcodecdspuuid.lib;kinect20.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Widgetsd.lib;Qt5Xmld.lib;opencv_core248d.lib;opencv_imgproc248d.lib;opencv_highgui248d.lib;Qt5XmlPatternsd.lib;opencv_ml248d.lib;opencv_video248d.lib;opencv_features2d248d.lib;opencv_calib3d248d.lib;opencv_objdetect248d.lib;opencv_contrib248d.lib;opencv_legacy248d.lib;opencv_flann248d.lib;Qt5AxContainerd.lib;Qt5AxBased.lib;Qt5AxBase.lib;PocoFoundationd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kinect20.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Widgetsd.lib;Qt5Xmld.lib;opencv_core248d.lib;opencv_imgproc248d.lib;opencv_highgui248d.lib;Qt5XmlPatternsd.lib;opencv_ml248d.lib;opencv_video248d.lib;opencv_features2d248d.lib;opencv_calib3d248d.lib;opencv_objdetect248d.lib;opencv_contrib248d.lib;opencv_legacy248d.lib;opencv_flann248d.lib;Qt5AxContainerd.lib;Qt5AxBased.lib;Qt5AxBase.lib;PocoFoundationd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -172,9 +172,7 @@
     <ClCompile Include="Kinect2Interface.cpp" />
     <ClCompile Include="kinectgui.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="ResamplerUtil.cpp" />
     <ClCompile Include="Skeleton.cpp" />
-    <ClCompile Include="WASAPICapture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="kinectgui.h">
@@ -221,10 +219,7 @@
     <ClInclude Include="GeneratedFiles\ui_kinectgui.h" />
     <ClInclude Include="GeneratedFiles\ui_kinectguiaux.h" />
     <ClInclude Include="Kinect2.h" />
-    <ClInclude Include="ResamplerUtil.h" />
     <ClInclude Include="Skeleton.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="WASAPICapture.h" />
     <CustomBuild Include="Kinect2Interface.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing Kinect2Interface.h...</Message>

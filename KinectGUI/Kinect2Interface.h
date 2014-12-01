@@ -15,7 +15,7 @@ protected:
 	void run(); // Q_DECL_OVERRIDE
 
 private:
-	Kinect2* _kinect;
+	Kinect2 *_kinect;
 	BYTE* _outputRGBXbuffer;
 	BYTE* _inputRGBXbuffer;
 	BYTE* _bodyMask;
@@ -24,11 +24,10 @@ private:
 	CameraSpacePoint* _cameraCoordinates;
 	Joint* _skeletonJoints;
 	std::vector<std::vector<int> > _skeletonJointPoints;
+	IAudioSource* _audioStream;
 	float* _audioBuffer;
-	IBodyFrame* _bodyFrame;	
-	IKinectSensor* _pKinectSensor;
-	Skeleton _bodySkeleton;
-	
+	IBodyFrame* _bodyFrame;
+
 	double _skeletonFps;
 	double _depthFps;
 	double _RGBFps;
@@ -62,9 +61,9 @@ public:
 	std::vector<std::vector<int> > getSkeletonJointPoints();
 	CameraSpacePoint* getCameraCoordinates();
 	QVector<QVector3D> getQtCameraCoordinates();
+	IAudioSource* getAudioSource();
 	float* getAudioBuffer();
 	IBodyFrame* getBodyFrame();
-	Skeleton getSkeleton();
 
 	cv::Mat& getSkeletonImage();
 	cv::Mat& getDepthImage();

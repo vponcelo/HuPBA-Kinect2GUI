@@ -12,8 +12,6 @@
 #include <windows.h>
 #include <opencv2\opencv.hpp>
 #include <opencv2\highgui\highgui.hpp>
-#include "Skeleton.h"
-#include "stdafx.h"
 
 class Kinect2
 {
@@ -61,16 +59,14 @@ public:
 	USHORT* getDepth();
 	BYTE* getDepthRGB();
 	BYTE* getBodyMask();
-	//BYTE* getSkeleton();
+	BYTE* getSkeleton();
 	Joint* getSkeletonJoints();
 	std::vector<std::vector<int> > getSkeletonJointPoints();
 	CameraSpacePoint* getCameraCoordinates();
 	IAudioSource* getAudioSource();
 	float* getAudioBuffer();
 	IBodyFrame* getBodyFrame();
-	IBody* getBody();
-	Skeleton getSkeleton();
-	
+
 	int getColorWidth();
 	int getColorHeight();
 	int getDepthWidth();
@@ -127,7 +123,8 @@ private:
 	// Audio screen
 	ULONGLONG					_nLastEnergyRefreshTime;
 	//static const int			cEnergySamplesToDisplay = 780;
-		
+
+	
 	//Output data
 	RGBQUAD*					_pOutputRGBX;
 	RGBQUAD*					_pColorRGBX;
@@ -140,8 +137,6 @@ private:
 
 	//Body Frame
 	IBodyFrame*					_pBodyFrame;
-	IBody*						_pBody;
-	Skeleton					_bodySkeleton;
 
 	//Skeleton data
 	Joint*							_joints;
@@ -159,8 +154,9 @@ private:
 	IMultiSourceFrameReader*	_pMultiSourceFrameReader;
 	IAudioBeamFrameReader*		_pAudioBeamFrameReader;
 
-	Skeleton IBodyToSkeleton(IBody* body);
-	
+
+
+
 	/// <summary>
 	/// Handle new depth and color data
 	/// <param name="nTime">timestamp of frame</param>
@@ -192,6 +188,8 @@ private:
 	/// Capture new audio data.
 	/// </summary>
 	void ProcessAudio(IAudioBeamSubFrame* pAudioBeamSubFrame);
+
+	template<class Interface> void safeRelease(Interface *& ppT);
 
 	void BodyToScreen(const CameraSpacePoint& bodyPoint, std::vector<int> &points);
 };
