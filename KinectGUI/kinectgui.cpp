@@ -226,8 +226,7 @@ void KinectGUI::updateImages()
 	
 	// Use a separate thread for recording modalities, because stream read/write operations
 	// will block the UI thread, and we want to minimize the delay of the UI thread.
-	if (_recordAudio || _recordColor || _recordDepth || 
-		_recordMask	|| _recordSkeleton) _rec = RecordingThread();
+	if (_isRecording) _rec = RecordingThread();
 
 	//Color data
 	if (!_colorImage.empty())
@@ -270,8 +269,7 @@ void KinectGUI::updateImages()
 		}
 	}
 
-	if (_recordAudio || _recordColor || _recordDepth ||
-		_recordMask || _recordSkeleton) _rec.join();		// Wait for multithreading synchronization
+	if (_isRecording) _rec.join();		// Wait for multithreading synchronization	
 }
 
 void KinectGUI::stopKinectCapturing()
@@ -285,6 +283,21 @@ void KinectGUI::stopKinectCapturing()
 	{
 		_kinect2Interface->finish();
 	}
+
+	if (_recordAudio)
+	{
+		wchar_t ch = _getwch();
+		UNREFERENCED_PARAMETER(ch);
+
+		if (INVALID_HANDLE_VALUE != _waveFile)
+		{
+			CloseHandle(_waveFile);
+		}
+
+		delete _capturer;
+		SafeRelease(_device);
+		CoUninitialize();		
+	}	
 
 	_isRecording = false;
 	_isCapturing = false;
@@ -306,16 +319,18 @@ void KinectGUI::startKinectRecording()
 	_isRecording = true;
 
 	//_dateTime = QDateTime::currentDateTime().toString().toStdString(); //CV_FOURCC('M', 'J', 'P', 'G')
-	std::time(&_dateTime);	
+	std::time(&_dateTime);
 	std::tr2::sys::path bp(std::to_string(_dateTime));
 	std::tr2::sys::create_directories(bp);
 
 	if (_recordAudio)
 	{
 		// http://stackoverflow.com/questions/14204902/record-audio-with-kinect ( C# adaptation ) 
-		_fileStream.open(std::to_string(_dateTime) + ".wav");		// this stream doesn't create the file
-		int rec_time = (int)300 * 2 * 16000;//300 sec (5 min)
-		WriteWavHeader(rec_time);
+		//_fileStream = std::ofstream(std::to_string(_dateTime) + "/voice.wav", std::ofstream::out);		// this stream doesn't create the file
+		//int rec_time = (int)300 * 2 * 16000;//300 sec (5 min)
+		//WriteWavHeader(rec_time);
+
+		_audioThread = AudioRecThread();
 	}
 		
 	//_rgbFrame = 0;
@@ -323,7 +338,7 @@ void KinectGUI::startKinectRecording()
 	//_maskFrame = 0;
 
 	int fourCC_code = -1;									// Window to select the codec
-	//fourCC_code = 1;										// Uncompressed (decreases the frame rate)
+	fourCC_code = 1;										// Uncompressed (decreases the frame rate)
 	//fourCC_code = CV_FOURCC('M', 'J', 'P', 'G');	// M-JPEG codec (may not be reliable).
 	//fourCC_code = CV_FOURCC('P', 'I', 'M', '1');	// MPEG 1 codec. 
 	//fourCC_code = CV_FOURCC('D', 'I', 'V', '3');	// MPEG 4.3 codec. 
@@ -358,13 +373,29 @@ void KinectGUI::stopKinectRecording()
 	ui.stopRecordButton->setEnabled(false);
 
 	_isRecording = false;
-	
+
+	if (_recordAudio)
+	{
+		//_fileStream.close();
+
+		wchar_t ch = _getwch();
+		UNREFERENCED_PARAMETER(ch);
+
+		if (INVALID_HANDLE_VALUE != _waveFile)
+		{
+			CloseHandle(_waveFile);
+		}
+
+		delete _capturer;
+		SafeRelease(_device);
+	}
+
 	if (_recordSkeleton)
 	{
 		string featurePath = std::to_string(_dateTime) + "/skeletons.csv";
 		Skeleton::skeletonsToCSV(_skels, featurePath);
 	}
-	
+
 	_vwColor.release();
 	_vwDepth.release();
 	_vwMask.release();
@@ -385,6 +416,292 @@ void KinectGUI::saveFrames(cv::VideoWriter &vw, cv::Mat &image, string s)
 	//currentFrame++;
 }
 
+std::thread KinectGUI::AudioRecThread()
+{
+	std::thread t2(&KinectGUI::RunAudioRec, this);
+	return t2;
+}
+
+int KinectGUI::RunAudioRec()
+{
+	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	if (SUCCEEDED(hr))
+	{
+		// Create the first connected Kinect sensor found.
+		if (SUCCEEDED(hr))
+		{
+			//  Find the audio device corresponding to the kinect sensor.
+			hr = GetKinectAudioDevice(&_device);
+			if (SUCCEEDED(hr))
+			{
+				// Create the wave file that will contain audio data
+				hr = GetWaveFileName(_waveFileName, _countof(_waveFileName));
+				if (SUCCEEDED(hr))
+				{
+					_waveFile = CreateFile(_waveFileName,
+						GENERIC_WRITE,
+						FILE_SHARE_READ,
+						NULL,
+						CREATE_ALWAYS,
+						FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN,
+						NULL);
+
+					if (INVALID_HANDLE_VALUE != _waveFile)
+					{
+						//  Instantiate a capturer
+						_capturer = new (std::nothrow) CWASAPICapture(_device);
+						if ((NULL != _capturer) && _capturer->Initialize(20))
+						{
+							hr = CaptureAudio(_capturer, _waveFile, _waveFileName);
+							if (FAILED(hr))
+							{
+								//printf_s("Unable to capture audio data.\n");
+							}
+						}
+						else
+						{
+							//printf_s("Unable to initialize capturer.\n");
+							hr = E_FAIL;
+						}
+					}
+					else
+					{
+						//printf_s("Unable to create output WAV file %S.\nAnother application might be using this file.\n", _waveFileName);
+						hr = E_FAIL;
+					}
+				}
+				else
+				{
+					//printf_s("Unable to construct output WAV file path.\n");
+				}
+			}
+			else
+			{
+				//printf_s("No matching audio device found!\n");
+			}
+		}
+		else
+		{
+			//printf_s("No ready Kinect found!\n");
+		}
+	}
+
+	return 0;
+}
+
+
+std::thread KinectGUI::RecordingThread()
+{
+	std::thread t1(&KinectGUI::RunRec, this);
+	return t1;
+}
+
+int KinectGUI::RunRec()
+{
+	/*
+	HRESULT hr;
+	if (_recordAudio || _recordSkeleton)
+	{
+		hr = GetDefaultKinectSensor(&_pKinectSensor);
+		boolean isOpen;
+		if (SUCCEEDED(hr) && _pKinectSensor) _pKinectSensor->get_IsOpen(&isOpen);
+		if (!isOpen) hr = _pKinectSensor->Open();
+	}*/
+
+	if (_recordAudio)
+	{	
+		//_audioBuffer = _kinect2Interface->getAudioBuffer();		// It seems the audio buffers don't correpond		
+		//_fileStream << _audioBuffer;
+	}
+
+	//if (_recordColor && !_colorImage.empty()) saveFrames(_vwColor, _colorImage, _rgbFrame, "RGB");
+	if (_recordColor && !_colorImage.empty()) saveFrames(_vwColor, _colorImage, "RGB");
+	//if (_recordMask && !_maskImage.empty()) saveFrames(_vwMask, bodyMaskImage, _maskFrame, "mask");
+	if (_recordMask && !_bodyMaskImage.empty()) saveFrames(_vwMask, _bodyMaskImage, "mask");
+	//if (_recordDepth && !_depthImage.empty()) saveFrames(_vwDepth, _depthImage, _depthFrame, "depth");
+	if (_recordDepth && !_depthImage.empty()) saveFrames(_vwDepth, _depthImage, "depth");
+
+	if (_recordSkeleton && !_bodyMaskImage.empty()) {
+		Skeleton sk = _kinect2Interface->getSkeleton();
+		if (sk.getTrackingID())
+		{
+			_skels.push_back(sk);
+		}
+	}
+	return 0;
+}
+
+HRESULT KinectGUI::GetKinectAudioDevice(IMMDevice **ppDevice)
+{
+	IMMDeviceEnumerator *pDeviceEnumerator = NULL;
+	IMMDeviceCollection *pDeviceCollection = NULL;
+	HRESULT hr = S_OK;
+
+	*ppDevice = NULL;
+
+	hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pDeviceEnumerator));
+	if (SUCCEEDED(hr))
+	{
+		hr = pDeviceEnumerator->EnumAudioEndpoints(eCapture, DEVICE_STATE_ACTIVE, &pDeviceCollection);
+		if (SUCCEEDED(hr))
+		{
+			UINT deviceCount;
+			hr = pDeviceCollection->GetCount(&deviceCount);
+			if (SUCCEEDED(hr))
+			{
+				// Iterate through all active audio capture devices looking for one that matches
+				// the specified Kinect sensor.
+				for (UINT i = 0; i < deviceCount; ++i)
+				{
+					IMMDevice *pDevice = NULL;
+					bool deviceFound = false;
+					hr = pDeviceCollection->Item(i, &pDevice);
+
+					{ // Identify by friendly name
+						IPropertyStore* pPropertyStore = NULL;
+						PROPVARIANT varName;
+						int sensorIndex = 0;
+
+						hr = pDevice->OpenPropertyStore(STGM_READ, &pPropertyStore);
+						PropVariantInit(&varName);
+						hr = pPropertyStore->GetValue(PKEY_Device_FriendlyName, &varName);
+
+						if (0 == lstrcmpW(varName.pwszVal, L"Microphone Array (Xbox NUI Sensor)") ||
+							1 == swscanf_s(varName.pwszVal, L"Microphone Array (%d- Xbox NUI Sensor)", &sensorIndex))
+						{
+							*ppDevice = pDevice;
+							deviceFound = true;
+						}
+
+						PropVariantClear(&varName);
+						SafeRelease(pPropertyStore);
+
+						if (true == deviceFound)
+						{
+							break;
+						}
+					}
+					SafeRelease(pDevice);
+				}
+			}
+			SafeRelease(pDeviceCollection);
+		}
+		SafeRelease(pDeviceEnumerator);
+	}
+
+	if (SUCCEEDED(hr) && (NULL == *ppDevice))
+	{
+		// If nothing went wrong but we haven't found a device, return failure
+		hr = E_FAIL;
+	}
+
+	return hr;
+}
+
+HRESULT KinectGUI::GetWaveFileName(_Out_writes_(waveFileNameSize) wchar_t *waveFileName, UINT waveFileNameSize)
+{
+	wchar_t *knownPath = NULL;
+	HRESULT hr = SHGetKnownFolderPath(FOLDERID_Music, 0, NULL, &knownPath);
+
+	if (SUCCEEDED(hr))
+	{
+		// Get the time
+		wchar_t timeString[MAX_PATH];
+		GetTimeFormatEx(NULL, 0, NULL, L"hh'-'mm'-'ss", timeString, _countof(timeString));
+
+		// File name will be KinectAudio-HH-MM-SS.wav
+		StringCchPrintfW(waveFileName, waveFileNameSize, L"%s\\KinectAudio-%s.wav", knownPath, timeString);
+	}
+
+	CoTaskMemFree(knownPath);
+	return hr;
+}
+
+HRESULT KinectGUI::CaptureAudio(CWASAPICapture *capturer, HANDLE waveFile, const wchar_t *waveFileName)
+{
+	HRESULT hr = S_OK;
+	wchar_t ch;
+
+	// Write a placeholder wave file header. Actual size of data section will be fixed up later.
+	hr = WriteWaveHeader(waveFile, capturer->GetOutputFormat(), 0);
+	if (SUCCEEDED(hr))
+	{
+		if (capturer->Start(waveFile))
+		{
+			//printf_s("Capturing audio data to file %S\nPress 's' to stop capturing.\n", waveFileName);
+
+			/*do
+			{
+				ch = _getwch();
+			} while (L'S' != towupper(ch));
+			*/
+			{
+				ch = _getwch();
+			} while (_isRecording);
+
+			//printf_s("\n");
+
+			capturer->Stop();
+
+			// Fix up the wave file header to reflect the right amount of captured data.
+			SetFilePointer(waveFile, 0, NULL, FILE_BEGIN);
+			hr = WriteWaveHeader(waveFile, capturer->GetOutputFormat(), capturer->BytesCaptured());
+		}
+		else
+		{
+			hr = E_FAIL;
+		}
+	}
+
+	return hr;
+}
+
+//  Static RIFF header, we'll append the format to it.
+const BYTE WaveHeaderTemplate[] =
+{
+	'R', 'I', 'F', 'F', 0x00, 0x00, 0x00, 0x00, 'W', 'A', 'V', 'E', 'f', 'm', 't', ' ', 0x00, 0x00, 0x00, 0x00
+};
+
+//  Static wave DATA tag.
+const BYTE WaveData[] = { 'd', 'a', 't', 'a' };
+
+HRESULT KinectGUI::WriteWaveHeader(HANDLE waveFile, const WAVEFORMATEX *pWaveFormat, DWORD dataSize)
+{
+	DWORD waveHeaderSize = sizeof(WAVEHEADER) + sizeof(WAVEFORMATEX) + pWaveFormat->cbSize + sizeof(WaveData) + sizeof(DWORD);
+	WAVEHEADER waveHeader;
+	DWORD bytesWritten;
+
+	// Update the sizes in the header
+	memcpy_s(&waveHeader, sizeof(waveHeader), WaveHeaderTemplate, sizeof(WaveHeaderTemplate));
+	waveHeader.dwSize = waveHeaderSize + dataSize - (2 * sizeof(DWORD));
+	waveHeader.dwFmtSize = sizeof(WAVEFORMATEX) + pWaveFormat->cbSize;
+
+	// Write the file header
+	if (!WriteFile(waveFile, &waveHeader, sizeof(waveHeader), &bytesWritten, NULL))
+	{
+		return E_FAIL;
+	}
+
+	// Write the format
+	if (!WriteFile(waveFile, pWaveFormat, sizeof(WAVEFORMATEX) + pWaveFormat->cbSize, &bytesWritten, NULL))
+	{
+		return E_FAIL;
+	}
+
+	// Write the data header
+	if (!WriteFile(waveFile, WaveData, sizeof(WaveData), &bytesWritten, NULL))
+	{
+		return E_FAIL;
+	}
+
+	if (!WriteFile(waveFile, &dataSize, sizeof(dataSize), &bytesWritten, NULL))
+	{
+		return E_FAIL;
+	}
+
+	return S_OK;
+}
+/*
 void KinectGUI::WriteWavHeader(int recodingLength)
 {
 	int cbFormat = 18; //sizeof(WAVEFORMATEX)
@@ -429,118 +746,9 @@ void KinectGUI::WriteWavHeader(int recodingLength)
 	//data header
 	(*memStream) << "data";
 	(*myBinaryWriter) << recodingLength;
-	_fileStream << &memStream;
+	_fileStream << memStream;
 
 	delete(myBinaryWriter);
 	delete(memStream);
 }
-
-Skeleton KinectGUI::getTrackedSkeleton(IBodyFrame* bodyFrame, UINT64 id, bool first) {
-	std::vector<Skeleton> skels = getSkeletonsFromBodyFrame(bodyFrame);
-	if (skels.size() > 0) {
-		if (first) return skels[0];
-		for (int i = 0; i < skels.size(); ++i) {
-			if (id == skels[i].getTrackingID()) return skels[i];
-		}
-	}
-	return Skeleton();
-}
-
-std::vector<Skeleton> KinectGUI::getSkeletonsFromBodyFrame(IBodyFrame* bodyFrame) {
-	const int N_BODIES = BODY_COUNT;
-	INT64 nTime = 0;
-	HRESULT hr;
-	hr = bodyFrame->get_RelativeTime(&nTime);
-	IBody* bodies[N_BODIES] = { NULL };
-
-	std::vector<Skeleton> skeletons;
-
-	if (SUCCEEDED(hr)) hr = bodyFrame->GetAndRefreshBodyData(N_BODIES, bodies);
-	if (SUCCEEDED(hr)) {
-		for (int i = 0; i < N_BODIES; ++i) {
-			IBody* body = bodies[i];
-			if (body) {
-				BOOLEAN tracked = false;
-				body->get_IsTracked(&tracked);
-				if (tracked) {
-					Skeleton auxSkel = KinectGUI::IBodyToSkeleton(body);
-					skeletons.push_back(auxSkel);
-					/*std::array<HandState, 2> hands = auxSkel.getHandState();
-					std::cout << "\t Left hand state is " << hands[0] << " and Right hand state is " << hands[1] << std::endl;*/
-				}
-			}
-		}
-	}
-
-	return skeletons;
-}
-
-Skeleton KinectGUI::IBodyToSkeleton(IBody* body) {
-	//Hands
-	TrackingConfidence	leftTc, rightTc;
-	body->get_HandLeftConfidence(&leftTc);
-	body->get_HandRightConfidence(&rightTc);
-
-	HandState leftHs = HandState_Unknown, rightHs = HandState_Unknown;
-	body->get_HandLeftState(&leftHs);
-	body->get_HandRightState(&rightHs);
-
-	//Tracking
-	BOOLEAN	isTracked;
-	UINT64 trackingId;
-	body->get_TrackingId(&trackingId);
-	body->get_IsTracked(&isTracked);
-
-	//Joints
-	JointOrientation jointOrientations[JointType_Count];
-	Joint joints[JointType_Count];
-	body->GetJointOrientations(_countof(jointOrientations), jointOrientations);
-	body->GetJoints(_countof(joints), joints);
-
-	return Skeleton(leftHs, rightHs, leftTc, rightTc, isTracked, trackingId, jointOrientations, joints);
-}
-
-std::thread KinectGUI::RecordingThread()
-{
-	std::thread t1(&KinectGUI::Run, this);
-	return t1;
-}
-
-int KinectGUI::Run()
-{
-	if (_isRecording && _recordAudio)
-	{	
-		_audioBuffer = _kinect2Interface->getAudioBuffer();		// It seems the audio buffers don't correpond
-		_fileStream << _audioBuffer;
-	}
-
-	//if (_isRecording && _recordColor && !_colorImage.empty()) saveFrames(_vwColor, _colorImage, _rgbFrame, "RGB");
-	if (_isRecording && _recordColor && !_colorImage.empty()) saveFrames(_vwColor, _colorImage, "RGB");
-	//if (_isRecording && _recordMask && !_maskImage.empty()) saveFrames(_vwMask, bodyMaskImage, _maskFrame, "mask");
-	if (_isRecording && _recordMask && !_bodyMaskImage.empty()) saveFrames(_vwMask, _bodyMaskImage, "mask");
-	//if (_isRecording && _recordDepth && !_depthImage.empty()) saveFrames(_vwDepth, _depthImage, _depthFrame, "depth");
-	if (_isRecording && _recordDepth && !_depthImage.empty()) saveFrames(_vwDepth, _depthImage, "depth");
-
-	if (_isRecording && _recordSkeleton && !_bodyMaskImage.empty()) {
-		//saveFrames(_vwDepth, _skeletonImage, _skeletonFrame, "skeleton");
-		//saveFrames(_vwDepth, _skeletonImage, "skeleton");
-
-		_bodyFrame = _kinect2Interface->getBodyFrame();			// It seems the body frames don't correpond
-		if (_bodyFrame) {
-			Skeleton sk = KinectGUI::getTrackedSkeleton(_bodyFrame, 0, true);
-			_skels.push_back(sk);
-		}
-		safeRelease(_bodyFrame); // If not the bodyFrame is not got again
-	}
-
-	return 0;
-}
-
-template<class Interface> void KinectGUI::safeRelease(Interface *& ppT)
-{
-	if (ppT)
-	{
-		ppT->Release();
-		ppT = NULL;
-	}
-}
+*/

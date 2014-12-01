@@ -3,16 +3,20 @@
 
 #include <QtWidgets/QMainWindow>
 #include <QtCore/qtimer.h>
-#include <iostream>
 #include "ui_kinectgui.h"
 #include "ui_kinectguiaux.h"
 #include "Kinect2Interface.h"
 #include <thread>
+#include <stdio.h>
+#include <strsafe.h>
 #include <sstream>
 #include <filesystem>
 #include "Poco/MemoryStream.h"
 #include "Poco/BinaryWriter.h"
 #include "Skeleton.h"
+#include "WASAPICapture.h"
+#include <Functiondiscoverykeys_devpkey.h>
+#include "stdafx.h"
 
 class KinectGUI : public QMainWindow
 {
@@ -53,16 +57,33 @@ private:
 	time_t _dateTime;
 
 	//Body Frame
-	IBodyFrame*				_bodyFrame;
+	//IBodyFrameReader*		_bfReader;
+	//IBodyFrame*			_bodyFrame;
 	vector<Skeleton>		_skels;
 
-	//Audio Stream
-	float*					_audioBuffer;
-	IAudioSource*			_audioStream;
-	std::fstream			_fileStream;
+	//Kinect Sensor
+	//IKinectSensor*			_pKinectSensor;
 
+	//Audio Stream
+	wchar_t					_waveFileName[MAX_PATH];
+	IMMDevice*				_device = NULL;
+	HANDLE					_waveFile = INVALID_HANDLE_VALUE;
+	CWASAPICapture*			_capturer = NULL;
+	//float*				_audioBuffer;
+	//std::ofstream			_fileStream;
+
+	struct WAVEHEADER
+	{
+		DWORD   dwRiff;                     // "RIFF"
+		DWORD   dwSize;                     // Size
+		DWORD   dwWave;                     // "WAVE"
+		DWORD   dwFmt;                      // "fmt "
+		DWORD   dwFmtSize;                  // Wave Format Size
+	};
+	
 	//Recording thread
-	std::thread				_rec;
+	std::thread						_rec;
+	std::thread						_audioThread;
 	
 	bool _isRecording;
 	bool _isCapturing;
@@ -84,20 +105,21 @@ private:
 	//Set if the different image frames are enabled or not
 	void enableImages(bool enabled);
 	
-	//Thread to record the streams
+	//Threads to record the streams
+	std::thread AudioRecThread();
+	int RunAudioRec();
 	std::thread RecordingThread();
-	int Run();
+	int RunRec();
 
 	//Set if the different image frames are shown or not
 	void showImages(bool show);
 	
-	void WriteWavHeader(int recordingLength);
+	HRESULT GetKinectAudioDevice(IMMDevice **ppDevice);
+	HRESULT GetWaveFileName(_Out_writes_(waveFileNameSize) wchar_t *waveFileName, UINT waveFileNameSize);
+	HRESULT CaptureAudio(CWASAPICapture *capturer, HANDLE waveFile, const wchar_t *waveFileName);
+	HRESULT WriteWaveHeader(HANDLE waveFile, const WAVEFORMATEX *pWaveFormat, DWORD dataSize);
 
-	Skeleton getTrackedSkeleton(IBodyFrame* bodyFrame, UINT64 id, bool first);
-	std::vector<Skeleton> getSkeletonsFromBodyFrame(IBodyFrame* bodyFrame);
-	Skeleton KinectGUI::IBodyToSkeleton(IBody* body);
-
-	template<class Interface> void safeRelease(Interface *& ppT);
+	//void WriteWavHeader(int recordingLength);
 
 private slots:
 	//Start gathering from Kinect

@@ -74,7 +74,7 @@ public:
     QCheckBox *maskShowCheck;
     QLabel *fpsLabel;
     QLabel *showLabel;
-    //QCheckBox *audioShowCheck;
+    QCheckBox *audioShowCheck;
     QCheckBox *audioRecordCheck;
     QCheckBox *skeletonRecordCheck;
     QCheckBox *maskRecordCheck;
@@ -325,10 +325,10 @@ public:
 
         gridLayout_2->addWidget(showLabel, 0, 2, 1, 1);
 
-        //audioShowCheck = new QCheckBox(layoutWidget3);
-        //audioShowCheck->setObjectName(QStringLiteral("audioShowCheck"));
+        audioShowCheck = new QCheckBox(layoutWidget3);
+        audioShowCheck->setObjectName(QStringLiteral("audioShowCheck"));
 
-        //gridLayout_2->addWidget(audioShowCheck, 5, 2, 1, 1, Qt::AlignHCenter|Qt::AlignVCenter);
+        gridLayout_2->addWidget(audioShowCheck, 5, 2, 1, 1, Qt::AlignHCenter|Qt::AlignVCenter);
 
         audioRecordCheck = new QCheckBox(layoutWidget3);
         audioRecordCheck->setObjectName(QStringLiteral("audioRecordCheck"));
@@ -425,9 +425,9 @@ public:
         colorFps->setText(QApplication::translate("KinectGUIClass", "--", 0));
         colorShowCheck->setText(QString());
         maskShowCheck->setText(QString());
-        fpsLabel->setText(QApplication::translate("KinectGUIClass", "FPS/BA", 0));
+        fpsLabel->setText(QApplication::translate("KinectGUIClass", "FPS", 0));
         showLabel->setText(QApplication::translate("KinectGUIClass", "Show", 0));
-        //audioShowCheck->setText(QString());
+        audioShowCheck->setText(QString());
         audioRecordCheck->setText(QString());
         skeletonRecordCheck->setText(QString());
         maskRecordCheck->setText(QString());
