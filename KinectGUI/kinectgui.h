@@ -10,8 +10,8 @@
 #include <thread>
 #include <sstream>
 #include <filesystem>
-#include "Poco/MemoryStream.h"
-#include "Poco/BinaryWriter.h"
+//#include "Poco/MemoryStream.h"
+//#include "Poco/BinaryWriter.h"
 #include "Skeleton.h"
 
 class KinectGUI : public QMainWindow
@@ -30,6 +30,7 @@ private:
 	//Other elements of GUI
 	UiAux::KinectGuiAuxClass uiAux;
 	QSignalMapper* _mapper;
+	cv::Size _imageSize;
 
 	//Kinect connection
 	Kinect2Interface *_kinect2Interface;
@@ -54,7 +55,7 @@ private:
 
 	//Body Frame
 	IBodyFrame*				_bodyFrame;
-	vector<Skeleton>		_skels;
+	std::vector<Skeleton>		_skels;
 
 	//Audio Stream
 	float*					_audioBuffer;
@@ -99,6 +100,9 @@ private:
 
 	template<class Interface> void safeRelease(Interface *& ppT);
 
+signals:
+	void resized();
+
 private slots:
 	//Start gathering from Kinect
 	void startKinectCapturing();
@@ -113,10 +117,15 @@ private slots:
 	//Update fps
 	void updateFPS();
 	//Save new images
-	void saveFrames(cv::VideoWriter& vw, cv::Mat& image, string s);
+	void saveFrames(cv::VideoWriter& vw, cv::Mat& image, std::string s);
 	//void saveFrames(cv::Mat& image, int& currentFrame, string s);
 	//Connection to checkboxes
 	void checkboxChanged(int);
+	//change image size when main windows is resized
+	void changeImageSize();
+
+protected:
+	void resizeEvent(QResizeEvent *event);
 
 };
 
