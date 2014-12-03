@@ -432,6 +432,16 @@ void KinectGUI::saveFrames(cv::VideoWriter &vw, cv::Mat &image, std::string s)
 	//currentFrame++;
 }
 
+void KinectGUI::resizeEvent(QResizeEvent *event)
+{
+	emit this->resized();
+}
+
+void KinectGUI::changeImageSize()
+{
+	_imageSize = cv::Size(ui.depthFrame->geometry().width() - 2, ui.depthFrame->geometry().height() - 2);
+}
+
 std::thread KinectGUI::AudioRecThread()
 {
 	std::thread t2(&KinectGUI::RunAudioRec, this);
