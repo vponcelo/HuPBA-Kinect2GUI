@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'kinectgui.ui'
 **
-** Created by: Qt User Interface Compiler version 5.3.1
+** Created by: Qt User Interface Compiler version 5.4.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -63,7 +63,6 @@ public:
     QCheckBox *maskShowCheck;
     QLabel *fpsLabel;
     QLabel *showLabel;
-    QCheckBox *audioShowCheck;
     QCheckBox *audioRecordCheck;
     QCheckBox *skeletonRecordCheck;
     QCheckBox *maskRecordCheck;
@@ -269,11 +268,6 @@ public:
 
         gridLayout_2->addWidget(showLabel, 0, 2, 1, 1);
 
-        audioShowCheck = new QCheckBox(layoutWidget);
-        audioShowCheck->setObjectName(QStringLiteral("audioShowCheck"));
-
-        gridLayout_2->addWidget(audioShowCheck, 5, 2, 1, 1, Qt::AlignHCenter|Qt::AlignVCenter);
-
         audioRecordCheck = new QCheckBox(layoutWidget);
         audioRecordCheck->setObjectName(QStringLiteral("audioRecordCheck"));
 
@@ -433,7 +427,7 @@ public:
         KinectGUIClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(KinectGUIClass);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 1285, 26));
+        menuBar->setGeometry(QRect(0, 0, 1285, 21));
         KinectGUIClass->setMenuBar(menuBar);
         statusBar = new QStatusBar(KinectGUIClass);
         statusBar->setObjectName(QStringLiteral("statusBar"));
@@ -467,9 +461,8 @@ public:
         colorFps->setText(QApplication::translate("KinectGUIClass", "--", 0));
         colorShowCheck->setText(QString());
         maskShowCheck->setText(QString());
-        fpsLabel->setText(QApplication::translate("KinectGUIClass", "FPS", 0));
+        fpsLabel->setText(QApplication::translate("KinectGUIClass", "FPS/BA", 0));
         showLabel->setText(QApplication::translate("KinectGUIClass", "Show", 0));
-        audioShowCheck->setText(QString());
         audioRecordCheck->setText(QString());
         skeletonRecordCheck->setText(QString());
         maskRecordCheck->setText(QString());

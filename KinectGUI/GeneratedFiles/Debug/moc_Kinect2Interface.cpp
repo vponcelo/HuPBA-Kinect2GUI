@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Kinect2Interface.h'
 **
-** Created by: The Qt Meta Object Compiler version 67 (Qt 5.3.2)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.4.0)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -12,7 +12,7 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'Kinect2Interface.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
-#error "This file was generated using the moc from 5.3.2. It"
+#error "This file was generated using the moc from 5.4.0. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -29,9 +29,10 @@ struct qt_meta_stringdata_Kinect2Interface_t {
     )
 static const qt_meta_stringdata_Kinect2Interface_t qt_meta_stringdata_Kinect2Interface = {
     {
-QT_MOC_LITERAL(0, 0, 16),
-QT_MOC_LITERAL(1, 17, 8),
-QT_MOC_LITERAL(2, 26, 0)
+QT_MOC_LITERAL(0, 0, 16), // "Kinect2Interface"
+QT_MOC_LITERAL(1, 17, 8), // "finished"
+QT_MOC_LITERAL(2, 26, 0) // ""
+
     },
     "Kinect2Interface\0finished\0"
 };
@@ -82,7 +83,7 @@ void Kinect2Interface::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int
 
 const QMetaObject Kinect2Interface::staticMetaObject = {
     { &QThread::staticMetaObject, qt_meta_stringdata_Kinect2Interface.data,
-      qt_meta_data_Kinect2Interface,  qt_static_metacall, 0, 0}
+      qt_meta_data_Kinect2Interface,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
@@ -93,7 +94,7 @@ const QMetaObject *Kinect2Interface::metaObject() const
 
 void *Kinect2Interface::qt_metacast(const char *_clname)
 {
-    if (!_clname) return 0;
+    if (!_clname) return Q_NULLPTR;
     if (!strcmp(_clname, qt_meta_stringdata_Kinect2Interface.stringdata))
         return static_cast<void*>(const_cast< Kinect2Interface*>(this));
     return QThread::qt_metacast(_clname);
@@ -119,6 +120,6 @@ int Kinect2Interface::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 // SIGNAL 0
 void Kinect2Interface::finished()
 {
-    QMetaObject::activate(this, &staticMetaObject, 0, 0);
+    QMetaObject::activate(this, &staticMetaObject, 0, Q_NULLPTR);
 }
 QT_END_MOC_NAMESPACE

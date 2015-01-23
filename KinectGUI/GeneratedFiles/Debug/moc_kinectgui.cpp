@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'kinectgui.h'
 **
-** Created by: The Qt Meta Object Compiler version 67 (Qt 5.3.2)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.4.0)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -12,7 +12,7 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'kinectgui.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
-#error "This file was generated using the moc from 5.3.2. It"
+#error "This file was generated using the moc from 5.4.0. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -29,24 +29,25 @@ struct qt_meta_stringdata_KinectGUI_t {
     )
 static const qt_meta_stringdata_KinectGUI_t qt_meta_stringdata_KinectGUI = {
     {
-QT_MOC_LITERAL(0, 0, 9),
-QT_MOC_LITERAL(1, 10, 7),
-QT_MOC_LITERAL(2, 18, 0),
-QT_MOC_LITERAL(3, 19, 20),
-QT_MOC_LITERAL(4, 40, 19),
-QT_MOC_LITERAL(5, 60, 20),
-QT_MOC_LITERAL(6, 81, 19),
-QT_MOC_LITERAL(7, 101, 12),
-QT_MOC_LITERAL(8, 114, 9),
-QT_MOC_LITERAL(9, 124, 10),
-QT_MOC_LITERAL(10, 135, 16),
-QT_MOC_LITERAL(11, 152, 2),
-QT_MOC_LITERAL(12, 155, 8),
-QT_MOC_LITERAL(13, 164, 5),
-QT_MOC_LITERAL(14, 170, 11),
-QT_MOC_LITERAL(15, 182, 1),
-QT_MOC_LITERAL(16, 184, 15),
-QT_MOC_LITERAL(17, 200, 15)
+QT_MOC_LITERAL(0, 0, 9), // "KinectGUI"
+QT_MOC_LITERAL(1, 10, 7), // "resized"
+QT_MOC_LITERAL(2, 18, 0), // ""
+QT_MOC_LITERAL(3, 19, 20), // "startKinectCapturing"
+QT_MOC_LITERAL(4, 40, 19), // "stopKinectCapturing"
+QT_MOC_LITERAL(5, 60, 20), // "startKinectRecording"
+QT_MOC_LITERAL(6, 81, 19), // "stopKinectRecording"
+QT_MOC_LITERAL(7, 101, 12), // "updateImages"
+QT_MOC_LITERAL(8, 114, 9), // "updateFPS"
+QT_MOC_LITERAL(9, 124, 10), // "saveFrames"
+QT_MOC_LITERAL(10, 135, 16), // "cv::VideoWriter&"
+QT_MOC_LITERAL(11, 152, 2), // "vw"
+QT_MOC_LITERAL(12, 155, 8), // "cv::Mat&"
+QT_MOC_LITERAL(13, 164, 5), // "image"
+QT_MOC_LITERAL(14, 170, 11), // "std::string"
+QT_MOC_LITERAL(15, 182, 1), // "s"
+QT_MOC_LITERAL(16, 184, 15), // "checkboxChanged"
+QT_MOC_LITERAL(17, 200, 15) // "changeImageSize"
+
     },
     "KinectGUI\0resized\0\0startKinectCapturing\0"
     "stopKinectCapturing\0startKinectRecording\0"
@@ -132,7 +133,7 @@ void KinectGUI::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, v
 
 const QMetaObject KinectGUI::staticMetaObject = {
     { &QMainWindow::staticMetaObject, qt_meta_stringdata_KinectGUI.data,
-      qt_meta_data_KinectGUI,  qt_static_metacall, 0, 0}
+      qt_meta_data_KinectGUI,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR}
 };
 
 
@@ -143,7 +144,7 @@ const QMetaObject *KinectGUI::metaObject() const
 
 void *KinectGUI::qt_metacast(const char *_clname)
 {
-    if (!_clname) return 0;
+    if (!_clname) return Q_NULLPTR;
     if (!strcmp(_clname, qt_meta_stringdata_KinectGUI.stringdata))
         return static_cast<void*>(const_cast< KinectGUI*>(this));
     return QMainWindow::qt_metacast(_clname);
@@ -169,6 +170,6 @@ int KinectGUI::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 // SIGNAL 0
 void KinectGUI::resized()
 {
-    QMetaObject::activate(this, &staticMetaObject, 0, 0);
+    QMetaObject::activate(this, &staticMetaObject, 0, Q_NULLPTR);
 }
 QT_END_MOC_NAMESPACE
