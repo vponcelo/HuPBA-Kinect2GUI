@@ -12,6 +12,7 @@
 #include <AudioPolicy.h>
 #include "ResamplerUtil.h"
 
+enum class EState {Stopped=0,Running};
 //
 //  WASAPI Capture class.
 class CWASAPICapture
@@ -77,6 +78,7 @@ private:
     //
     //  Core Audio Capture member variables.
     //
+	EState					m_State;
     IMMDevice *             _Endpoint;
     IAudioClient *          _AudioClient;
     IAudioCaptureClient *   _CaptureClient;

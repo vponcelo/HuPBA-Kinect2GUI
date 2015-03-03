@@ -301,15 +301,18 @@ void KinectGUI::stopKinectCapturing()
 
 	if (_recordAudio)
 	{
-		wchar_t ch = _getwch();
-		UNREFERENCED_PARAMETER(ch);
+		StopCaptureAudio();
 
 		if (INVALID_HANDLE_VALUE != _waveFile)
 		{
 			CloseHandle(_waveFile);
+			_waveFile = INVALID_HANDLE_VALUE;
 		}
-
-		delete _capturer;
+		if (_capturer != nullptr)
+		{
+			delete _capturer;
+			_capturer = nullptr;
+		}
 		SafeRelease(_device);
 		CoUninitialize();		
 	}	
@@ -338,6 +341,8 @@ void KinectGUI::startKinectRecording()
 	std::tr2::sys::path bp(std::to_string(_dateTime));
 	std::tr2::sys::create_directories(bp);
 
+	_RecordingDirectory = bp.string();
+
 	if (_recordAudio)
 	{
 		// http://stackoverflow.com/questions/14204902/record-audio-with-kinect ( C# adaptation ) 
@@ -353,7 +358,7 @@ void KinectGUI::startKinectRecording()
 	//_maskFrame = 0;
 
 	int fourCC_code = -1;									// Window to select the codec
-	fourCC_code = 1;										// Uncompressed (decreases the frame rate)
+	//fourCC_code = 1;										// Uncompressed (decreases the frame rate)
 	//fourCC_code = CV_FOURCC('M', 'J', 'P', 'G');	// M-JPEG codec (may not be reliable).
 	//fourCC_code = CV_FOURCC('P', 'I', 'M', '1');	// MPEG 1 codec. 
 	//fourCC_code = CV_FOURCC('D', 'I', 'V', '3');	// MPEG 4.3 codec. 
@@ -376,9 +381,18 @@ void KinectGUI::startKinectRecording()
 	//_vwColor.open(dateTime.toStdString() + "hi_color.avi", CV_FOURCC('D', 'I', 'V', 'X'), 30, cv::Size(_kinect2Interface->getColorWidth() / 3.5, _kinect2Interface->getColorHeight() / 3.5));
 	//_vwDepth.open("_depth.mp4", -1, 30, cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()));
 	//_vwMask.open(dateTime.toStdString() + "_mask.avi", -1, 30, cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()));
-	if (_recordColor) _vwColor.open(std::to_string(_dateTime) + "/hi_color.avi", fourCC_code, _kinect2Interface->getRGBFps(), cv::Size(_kinect2Interface->getColorWidth(), _kinect2Interface->getColorHeight()), 1);
-	if (_recordDepth) _vwDepth.open(std::to_string(_dateTime) + "/depth.avi", fourCC_code, _kinect2Interface->getDepthFps(), cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()), 1);
-	if (_recordMask) _vwMask.open(std::to_string(_dateTime) + "/mask.avi", fourCC_code, _kinect2Interface->getBodyMaskFps(), cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()), 1);	
+	if (_recordColor)
+	{
+		bool result = _vwColor.open(std::to_string(_dateTime) + "/hi_color.avi", fourCC_code, 30, cv::Size(_kinect2Interface->getColorWidth(), _kinect2Interface->getColorHeight()), 1);
+	}
+	if (_recordDepth)
+	{
+		bool result = _vwDepth.open(std::to_string(_dateTime) + "/depth.avi", fourCC_code, _kinect2Interface->getDepthFps(), cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()), 1);
+	}
+	if (_recordMask)
+	{
+		bool result = _vwMask.open(std::to_string(_dateTime) + "/mask.avi", fourCC_code, _kinect2Interface->getBodyMaskFps(), cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()), 1);
+	}
 	//if (_recordSkeleton) _vwSkeleton.open(std::to_string(_dateTime) + "/Skeleton.avi", fourCC_code, _kinect2Interface->getSkeletonFps(), cv::Size(_kinect2Interface->getDepthWidth(), _kinect2Interface->getDepthHeight()), 1);
 }
 
@@ -391,17 +405,15 @@ void KinectGUI::stopKinectRecording()
 
 	if (_recordAudio)
 	{
-		//_fileStream.close();
-
-		wchar_t ch = _getwch();
-		UNREFERENCED_PARAMETER(ch);
-
+		StopCaptureAudio();
 		if (INVALID_HANDLE_VALUE != _waveFile)
 		{
 			CloseHandle(_waveFile);
+			_waveFile = INVALID_HANDLE_VALUE;
 		}
 
 		delete _capturer;
+		_capturer = nullptr;
 		SafeRelease(_device);
 		_audioThread.join();
 	}
@@ -421,7 +433,7 @@ void KinectGUI::stopKinectRecording()
 void KinectGUI::saveFrames(cv::VideoWriter &vw, cv::Mat &image, std::string s)
 {	
 	// write frames to video
-	if (vw.isOpened())
+	//if (vw.isOpened())
 	{
 		//cv:imshow(s, image);
 		vw.write(image);		
@@ -444,6 +456,7 @@ void KinectGUI::changeImageSize()
 
 std::thread KinectGUI::AudioRecThread()
 {
+	
 	std::thread t2(&KinectGUI::RunAudioRec, this);
 	return t2;
 }
@@ -461,10 +474,21 @@ int KinectGUI::RunAudioRec()
 			if (SUCCEEDED(hr))
 			{
 				// Create the wave file that will contain audio data
-				hr = GetWaveFileName(_waveFileName, _countof(_waveFileName));
+				std::time_t rawtime;
+				struct tm * timeinfo;
+				char buffer[80];
+
+				std::time(&rawtime);
+				timeinfo = std::localtime(&rawtime);
+
+				std::strftime(buffer, 80, "%Y-%m-%d_%H-%M-%S", timeinfo);
+
+				std::stringstream pathFile;
+				pathFile << _RecordingDirectory << "/" << buffer << ".wav";
+
 				if (SUCCEEDED(hr))
 				{
-					_waveFile = CreateFile(_waveFileName,
+					_waveFile = CreateFileA(pathFile.str().c_str(),
 						GENERIC_WRITE,
 						FILE_SHARE_READ,
 						NULL,
@@ -478,7 +502,7 @@ int KinectGUI::RunAudioRec()
 						_capturer = new (std::nothrow) CWASAPICapture(_device);
 						if ((NULL != _capturer) && _capturer->Initialize(20))
 						{
-							hr = CaptureAudio(_capturer, _waveFile, _waveFileName);
+							hr = StartCaptureAudio(_capturer, _waveFile, _waveFileName);
 							if (FAILED(hr))
 							{
 								//printf_s("Unable to capture audio data.\n");
@@ -524,22 +548,6 @@ std::thread KinectGUI::RecordingThread()
 
 int KinectGUI::RunRec()
 {
-	/*
-	HRESULT hr;
-	if (_recordAudio || _recordSkeleton)
-	{
-		hr = GetDefaultKinectSensor(&_pKinectSensor);
-		boolean isOpen;
-		if (SUCCEEDED(hr) && _pKinectSensor) _pKinectSensor->get_IsOpen(&isOpen);
-		if (!isOpen) hr = _pKinectSensor->Open();
-	}*/
-
-	if (_recordAudio)
-	{	
-		//_audioBuffer = _kinect2Interface->getAudioBuffer();		// It seems the audio buffers don't correpond		
-		//_fileStream << _audioBuffer;
-	}
-
 	//if (_recordColor && !_colorImage.empty()) saveFrames(_vwColor, _colorImage, _rgbFrame, "RGB");
 	if (_recordColor && !_colorImage.empty()) saveFrames(_vwColor, _colorImage, "RGB");
 	//if (_recordMask && !_maskImage.empty()) saveFrames(_vwMask, bodyMaskImage, _maskFrame, "mask");
@@ -547,7 +555,8 @@ int KinectGUI::RunRec()
 	//if (_recordDepth && !_depthImage.empty()) saveFrames(_vwDepth, _depthImage, _depthFrame, "depth");
 	if (_recordDepth && !_depthImage.empty()) saveFrames(_vwDepth, _depthImage, "depth");
 
-	if (_recordSkeleton && !_bodyMaskImage.empty()) {
+	if (_recordSkeleton && !_bodyMaskImage.empty()) 
+	{
 		Skeleton sk = _kinect2Interface->getSkeleton();
 		if (sk.getTrackingID())
 		{
@@ -592,8 +601,9 @@ HRESULT KinectGUI::GetKinectAudioDevice(IMMDevice **ppDevice)
 						PropVariantInit(&varName);
 						hr = pPropertyStore->GetValue(PKEY_Device_FriendlyName, &varName);
 
-						if (0 == lstrcmpW(varName.pwszVal, L"Microphone Array (Xbox NUI Sensor)") ||
-							1 == swscanf_s(varName.pwszVal, L"Microphone Array (%d- Xbox NUI Sensor)", &sensorIndex))
+						std::wstring nameSensor(varName.pwszVal);
+
+						if (nameSensor.find(L"NUI Sensor") == std::wstring::npos)
 						{
 							*ppDevice = pDevice;
 							deviceFound = true;
@@ -607,11 +617,14 @@ HRESULT KinectGUI::GetKinectAudioDevice(IMMDevice **ppDevice)
 							break;
 						}
 					}
+
 					SafeRelease(pDevice);
 				}
 			}
+
 			SafeRelease(pDeviceCollection);
 		}
+
 		SafeRelease(pDeviceEnumerator);
 	}
 
@@ -624,26 +637,8 @@ HRESULT KinectGUI::GetKinectAudioDevice(IMMDevice **ppDevice)
 	return hr;
 }
 
-HRESULT KinectGUI::GetWaveFileName(_Out_writes_(waveFileNameSize) wchar_t *waveFileName, UINT waveFileNameSize)
-{
-	wchar_t *knownPath = NULL;
-	HRESULT hr = SHGetKnownFolderPath(FOLDERID_Music, 0, NULL, &knownPath);
 
-	if (SUCCEEDED(hr))
-	{
-		// Get the time
-		wchar_t timeString[MAX_PATH];
-		GetTimeFormatEx(NULL, 0, NULL, L"hh'-'mm'-'ss", timeString, _countof(timeString));
-
-		// File name will be KinectAudio-HH-MM-SS.wav
-		StringCchPrintfW(waveFileName, waveFileNameSize, L"%s\\KinectAudio-%s.wav", knownPath, timeString);
-	}
-
-	CoTaskMemFree(knownPath);
-	return hr;
-}
-
-HRESULT KinectGUI::CaptureAudio(CWASAPICapture *capturer, HANDLE waveFile, const wchar_t *waveFileName)
+HRESULT KinectGUI::StartCaptureAudio(CWASAPICapture *capturer, HANDLE waveFile, const wchar_t *waveFileName)
 {
 	HRESULT hr = S_OK;
 	wchar_t ch;
@@ -655,29 +650,27 @@ HRESULT KinectGUI::CaptureAudio(CWASAPICapture *capturer, HANDLE waveFile, const
 		if (capturer->Start(waveFile))
 		{
 			//printf_s("Capturing audio data to file %S\nPress 's' to stop capturing.\n", waveFileName);
-
-			/*do
-			{
-				ch = _getwch();
-			} while (L'S' != towupper(ch));
-			*/
-			{
-				ch = _getwch();
-			} while (_isRecording);
-
-			//printf_s("\n");
-
-			capturer->Stop();
-
-			// Fix up the wave file header to reflect the right amount of captured data.
-			SetFilePointer(waveFile, 0, NULL, FILE_BEGIN);
-			hr = WriteWaveHeader(waveFile, capturer->GetOutputFormat(), capturer->BytesCaptured());
+		
 		}
 		else
 		{
 			hr = E_FAIL;
 		}
 	}
+
+	return hr;
+}
+HRESULT KinectGUI::StopCaptureAudio()
+{
+	HRESULT hr = S_OK;
+
+	if (_capturer == nullptr) return hr;
+
+	_capturer->Stop();
+
+	// Fix up the wave file header to reflect the right amount of captured data.
+	SetFilePointer(_waveFile, 0, NULL, FILE_BEGIN);
+	hr = WriteWaveHeader(_waveFile, _capturer->GetOutputFormat(), _capturer->BytesCaptured());
 
 	return hr;
 }

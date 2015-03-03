@@ -86,6 +86,8 @@ private:
 	std::thread				_rec;
 	std::thread				_audioThread;
 	
+	std::string _RecordingDirectory;
+
 	bool _isRecording;
 	bool _isCapturing;
 
@@ -116,8 +118,9 @@ private:
 	void showImages(bool show);
 	
 	HRESULT GetKinectAudioDevice(IMMDevice **ppDevice);
-	HRESULT GetWaveFileName(_Out_writes_(waveFileNameSize) wchar_t *waveFileName, UINT waveFileNameSize);
-	HRESULT CaptureAudio(CWASAPICapture *capturer, HANDLE waveFile, const wchar_t *waveFileName);
+	HRESULT GetWaveFileName(std::string& p_Directory,_Out_writes_(waveFileNameSize) wchar_t *waveFileName, UINT waveFileNameSize);
+	HRESULT StartCaptureAudio(CWASAPICapture *capturer, HANDLE waveFile, const wchar_t *waveFileName);
+	HRESULT StopCaptureAudio();
 	HRESULT WriteWaveHeader(HANDLE waveFile, const WAVEFORMATEX *pWaveFormat, DWORD dataSize);
 	//void WriteWavHeader(int recordingLength);
 	

@@ -17,6 +17,7 @@
 /// Initializes an instance of CWASAPICapture type.
 /// </summary>
 CWASAPICapture::CWASAPICapture(IMMDevice *Endpoint) : 
+	m_State(EState::Stopped),
     _Endpoint(Endpoint),
     _AudioClient(NULL),
     _CaptureClient(NULL),
@@ -169,6 +170,8 @@ bool CWASAPICapture::Initialize(UINT32 EngineLatency)
 /// </returns>
 bool CWASAPICapture::Start(HANDLE waveFile)
 {
+	if (m_State == EState::Running) return false;
+
     HRESULT hr;
 
     _BytesCaptured = 0;
@@ -193,7 +196,7 @@ bool CWASAPICapture::Start(HANDLE waveFile)
         printf_s("Unable to start capture client: %x.\n", hr);
         return false;
     }
-
+	m_State = EState::Running;
     return true;
 }
 
@@ -202,6 +205,8 @@ bool CWASAPICapture::Start(HANDLE waveFile)
 /// </summary>
 void CWASAPICapture::Stop()
 {
+	if (m_State == EState::Stopped) return;
+
     HRESULT hr;
 
     //
@@ -226,6 +231,7 @@ void CWASAPICapture::Stop()
         CloseHandle(_CaptureThread);
         _CaptureThread = NULL;
     }
+	m_State = EState::Stopped;
 }
 
 
