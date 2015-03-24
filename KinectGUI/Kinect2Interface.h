@@ -24,9 +24,7 @@ private:
 	CameraSpacePoint* _cameraCoordinates;
 	Joint* _skeletonJoints;
 	std::vector<std::vector<int> > _skeletonJointPoints;
-	//float* _audioBuffer;
-	//IBodyFrame* _bodyFrame;	
-	//IKinectSensor* _pKinectSensor;
+
 	Skeleton _bodySkeleton;
 	
 	double _skeletonFps;

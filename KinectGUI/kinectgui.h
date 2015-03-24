@@ -49,29 +49,19 @@ private:
 	cv::VideoWriter _vwDepth;	
 	cv::VideoWriter _vwMask;
 	cv::VideoWriter _vwSkeleton;
-	//int _rgbFrame;
-	//int _depthFrame;
-	//int _maskFrame;
-	//int _skeletonFrame;
+
 	
 	//Current date
 	time_t _dateTime;
 
-	//Body Frame
-	//IBodyFrameReader*		_bfReader;
-	//IBodyFrame*			_bodyFrame;
 	vector<Skeleton>		_skels;
-
-	//Kinect Sensor
-	//IKinectSensor*			_pKinectSensor;
 
 	//Audio Stream
 	wchar_t					_waveFileName[MAX_PATH];
 	IMMDevice*				_device = NULL;
 	HANDLE					_waveFile = INVALID_HANDLE_VALUE;
 	CWASAPICapture*			_capturer = NULL;
-	//float*				_audioBuffer;
-	//std::ofstream			_fileStream;
+
 
 	struct WAVEHEADER
 	{

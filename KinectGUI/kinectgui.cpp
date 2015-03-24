@@ -218,10 +218,6 @@ void KinectGUI::updateFPS()
 
 void KinectGUI::updateImages()
 {
-//	BYTE *buffer = _kinect2Interface->getInputRGBXBuffer();
-//	BYTE *bodyMask = _kinect2Interface->getBodyMask();
-//	BYTE *depthRGBXBuffer = _kinect2Interface->getDepthRGBXBuffer();
-
 	_skeletonImage = _kinect2Interface->getSkeletonImage();
 	_depthImage = _kinect2Interface->getDepthImage();
 	_bodyMaskImage = _kinect2Interface->getBodyMaskImage();
@@ -372,7 +368,7 @@ void KinectGUI::startKinectRecording()
 	//fourCC_code = CV_FOURCC('3', 'I', 'V', 'X');	// 3IVX.
 	//fourCC_code = CV_FOURCC('3', 'I', 'V', '2');	// 3IVX.
 	//fourCC_code = CV_FOURCC('d', 'x', '5', '0');	// 3IVX.
-	//fourCC_code = CV_FOURCC('H', '2', '6', '4');	// H264.
+	fourCC_code = CV_FOURCC('H', '2', '6', '4');	// H264.
 	//fourCC_code = CV_FOURCC('X', '2', '6', '4');	// X264.
 	//fourCC_code = CV_FOURCC('M', 'P', 'G', '4');	// MPG4.
 	//fourCC_code = CV_FOURCC('D', 'I', 'B', ' ');	// DIB.
@@ -720,54 +716,3 @@ HRESULT KinectGUI::WriteWaveHeader(HANDLE waveFile, const WAVEFORMATEX *pWaveFor
 
 	return S_OK;
 }
-/*
-void KinectGUI::WriteWavHeader(int recodingLength)
-{
-	int cbFormat = 18; //sizeof(WAVEFORMATEX)
-	WAVEFORMATEX format;
-
-	format.wFormatTag = 1;
-	format.nChannels = 1;
-	format.nSamplesPerSec = 16000;
-	format.nAvgBytesPerSec = 32000;
-	format.nBlockAlign = 2;
-	format.wBitsPerSample = 16;
-	format.cbSize = 0;
-
-	int bufferSize = 64;
-	char *_buffer = (char *)malloc(bufferSize);
-
-	// http://stackoverflow.com/questions/10926767/ios-example-of-usage-pocobinaryreader-pocobinarywriter
-	// >> WRITE BLOCK <<   
-	//We need to use a memory stream because the BinaryWriter will close the underlying stream when it is closed
-	Poco::MemoryOutputStream *memStream = new Poco::MemoryOutputStream(_buffer, bufferSize);
-	Poco::BinaryWriter *myBinaryWriter;
-	myBinaryWriter = new Poco::BinaryWriter(*memStream);
-
-	//WAVEFORMATEX
-	(*myBinaryWriter) << recodingLength + cbFormat + 4;
-	(*myBinaryWriter) << cbFormat;
-	(*myBinaryWriter) << format.wFormatTag;
-	(*myBinaryWriter) << format.nChannels;
-	(*myBinaryWriter) << format.nSamplesPerSec;
-	(*myBinaryWriter) << format.nAvgBytesPerSec;
-	(*myBinaryWriter) << format.nBlockAlign;
-	(*myBinaryWriter) << format.wBitsPerSample;
-	(*myBinaryWriter) << format.cbSize;
-
-	//RIFF Header
-	(*memStream) << "RIFF";
-	(*myBinaryWriter) << recodingLength + cbFormat + 4; //File size - 8
-	(*memStream) << "WAVE";
-	(*memStream) << "fmt ";
-	(*myBinaryWriter) << cbFormat;
-
-	//data header
-	(*memStream) << "data";
-	(*myBinaryWriter) << recodingLength;
-	_fileStream << memStream;
-
-	delete(myBinaryWriter);
-	delete(memStream);
-}
-*/
